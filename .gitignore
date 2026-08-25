@@ -1,0 +1,4 @@
+# local scratch — not part of the site
+*.zip
+.DS_Store
+Thumbs.db

@@ -33,12 +33,16 @@ build themselves from that array.
 index.html              home — hero, work grid, about, contact
 projects/
   _template.html        copy this for each new case study
+  signal-engine.html
   fantasy-baseball.html
+decks/
+  signal-not-noise.html self-contained slide deck, served as its own page
 assets/
   css/style.css         all styling; colors are CSS variables at the top
   js/projects.js        project data — the only file you need to edit regularly
   js/main.js            grid rendering, filters, theme toggle
   img/                  screenshots
+  files/                PDFs and other downloads
 .nojekyll               tells GitHub Pages to serve the files as-is
 ```
 
@@ -54,3 +58,17 @@ The light theme overrides sit right below it.
 python3 -m http.server 8000
 # then open http://localhost:8000
 ```
+
+## Hosting a standalone deck or document
+
+Drop a self-contained HTML file in `decks/` and it's served at
+`https://zpressley.github.io/decks/your-file.html` — no config needed. To show it
+inside a case study, embed it:
+
+```html
+<div class="embed">
+  <iframe src="../decks/your-file.html" title="Deck title" loading="lazy"></iframe>
+</div>
+```
+
+PDFs go in `assets/files/` and link the same way.

@@ -1,0 +1,8 @@
+# Keep line endings LF everywhere so files written by tooling don't
+# show up as modified just because Windows checked them out as CRLF.
+* text=auto eol=lf
+
+*.pdf binary
+*.png binary
+*.jpg binary
+*.gif binary

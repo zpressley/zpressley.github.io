@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Signal, Not Noise — a nonprofit growth-signal engine. An enrichment waterfall that finds nonprofits actively investing in fundraising capacity and only pays for enrichment on the shortlist that earns it.">
+<meta name="color-scheme" content="dark">
+<title>Signal, Not Noise</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  /* Committed single-theme dark deck — every color painted explicitly */
+  :root{
+    --ink:#0B0E13; --panel:#141923; --panel2:#10141C; --line:#232B38;
+    --text:#EEF1F5; --mut:#AEB7C6; --body:#CBD2DE; --dim:#4A5568;
+    --amber:#FFAD33; --amber-dim:rgba(255,173,51,.14);
+    --disp:'Archivo',system-ui,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{background:var(--ink);color:var(--text);font-family:var(--disp);font-size:16px;line-height:1.55;overflow:hidden}
+  ::selection{background:var(--amber);color:var(--ink)}
+
+  .stage{position:fixed;inset:0;overflow:hidden}
+  .slide{position:absolute;inset:0;padding:clamp(28px,5vh,64px) clamp(24px,5vw,80px);
+    display:flex;flex-direction:column;opacity:0;visibility:hidden;transform:translateY(14px);
+    transition:opacity .45s ease,transform .45s ease,visibility 0s .45s;overflow-y:auto}
+  .slide.on{opacity:1;visibility:visible;transform:none;transition:opacity .45s ease,transform .45s ease,visibility 0s}
+  .inner{width:100%;max-width:1180px;margin:auto}
+
+  /* chrome */
+  .bar{position:fixed;top:0;left:0;height:3px;background:var(--amber);width:0;transition:width .4s ease;z-index:40}
+  .nav{position:fixed;right:clamp(20px,4vw,56px);bottom:clamp(18px,4vh,36px);z-index:40;
+    display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:13px;color:var(--mut)}
+  .nav button{background:var(--panel);border:1px solid var(--line);color:var(--text);width:40px;height:40px;
+    border-radius:2px;font-size:15px;cursor:pointer;font-family:var(--mono);transition:border-color .2s,color .2s}
+  .nav button:hover{border-color:var(--amber);color:var(--amber)}
+  .nav button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+  .counter{font-variant-numeric:tabular-nums;letter-spacing:.08em}
+  .deckfoot{position:fixed;left:clamp(24px,5vw,80px);bottom:clamp(18px,4vh,36px);z-index:40;
+    font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
+  .firmmark{position:fixed;right:clamp(24px,5vw,80px);top:clamp(20px,4vh,34px);z-index:40;
+    font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--mut);
+    display:flex;align-items:center;gap:8px}
+  .firmmark::before{content:"";width:8px;height:8px;background:var(--amber)}
+  .firmmark span{color:var(--dim)}
+
+  /* type system */
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--mut);
+    display:flex;align-items:center;gap:12px;margin-bottom:clamp(14px,2.5vh,26px)}
+  .eyebrow::before{content:"";width:26px;height:1px;background:var(--amber);flex:none}
+  .eyebrow .tag{border:1px solid var(--line);padding:3px 8px;color:var(--amber);border-radius:2px}
+  h1,h2{font-weight:900;text-transform:uppercase;letter-spacing:-.01em;line-height:.98;text-wrap:balance}
+  h1{font-size:clamp(46px,9vw,118px)}
+  h2{font-size:clamp(30px,4.6vw,54px);margin-bottom:clamp(16px,3vh,30px)}
+  .lede{font-size:clamp(16px,1.6vw,20px);color:var(--body);max-width:62ch}
+  .lede strong,.lede b{color:var(--text);font-weight:600}
+  .money{color:var(--amber);font-weight:600}
+  .knum{font-family:var(--mono);color:var(--mut);font-size:12px;letter-spacing:.1em}
+
+  /* minimap — recurring element */
+  .minimap{display:flex;align-items:stretch;gap:0;margin-top:clamp(20px,4vh,40px);
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;user-select:none}
+  .mm{flex:1;border:1px solid var(--line);border-left:none;padding:10px 14px;color:var(--dim);
+    display:flex;justify-content:space-between;gap:10px;align-items:center;background:var(--panel2)}
+  .mm:first-child{border-left:1px solid var(--line)}
+  .mm .cost{font-size:10px;color:var(--dim)}
+  .mm.done{color:var(--mut)} .mm.done .tick{color:var(--mut)}
+  .mm.now{color:var(--text);border-color:var(--text);border-left:1px solid var(--text);background:var(--panel)}
+  .mm.now.paid{color:var(--amber);border-color:var(--amber);border-left:1px solid var(--amber);background:var(--amber-dim)}
+  .mm.now .cost,.mm.now.paid .cost{color:inherit}
+
+  /* panels & grids */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2vw,24px)}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,24px)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:2px;padding:clamp(16px,2vw,24px)}
+  .card h3{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+  .card p{font-size:14.5px;color:var(--body)}
+  .card p b{color:var(--text);font-weight:600}
+  .card .knum{display:block;margin-bottom:10px}
+
+  figure{margin:0}
+  figure svg{display:block;max-width:100%;height:auto}
+  figcaption{font-family:var(--mono);font-size:12px;color:var(--mut);margin-top:10px;letter-spacing:.04em}
+
+  /* barbell svg states */
+  .bb .seg{transition:opacity .3s}
+  .bb text{font-family:var(--mono);letter-spacing:.08em}
+  .bb .box{fill:var(--panel);stroke:var(--dim);stroke-width:1.5}
+  .bb .wire{stroke:var(--dim);stroke-width:1.2;fill:none}
+  .bb .lab{fill:var(--dim);font-size:12px;text-transform:uppercase}
+  .bb .sub{fill:var(--dim);font-size:11px}
+  .bb .nodetxt{fill:var(--mut);font-size:12.5px;font-weight:600;letter-spacing:.1em}
+  .bb .drop{stroke-dasharray:4 5}
+  .bb .head{fill:var(--dim)}
+  .lit-score .seg-score .head{fill:var(--text)}
+  .lit-all .head{fill:var(--mut)}
+  /* lit states applied via wrapper class */
+  .lit-collect .seg-collect .box,.lit-score .seg-score .box,.lit-expand .seg-expand .box{stroke:var(--text)}
+  .lit-collect .seg-collect .wire,.lit-score .seg-score .wire{stroke:var(--text)}
+  .lit-collect .seg-collect .lab,.lit-collect .seg-collect .sub,.lit-collect .seg-collect .nodetxt,
+  .lit-score .seg-score .lab,.lit-score .seg-score .sub,.lit-score .seg-score .nodetxt{fill:var(--text)}
+  .lit-expand .seg-expand .box{stroke:var(--amber);fill:var(--amber-dim)}
+  .lit-expand .seg-expand .wire{stroke:var(--amber)}
+  .lit-expand .seg-expand .lab,.lit-expand .seg-expand .sub,.lit-expand .seg-expand .nodetxt{fill:var(--amber)}
+  .lit-all .box{stroke:var(--mut)} .lit-all .wire{stroke:var(--mut)}
+  .lit-all .lab,.lit-all .nodetxt{fill:var(--mut)} .lit-all .sub{fill:var(--mut)}
+  /* progressive reveal: ghost segments not yet reached */
+  .lit-collect .seg-score,.lit-collect .seg-expand{opacity:.28}
+  .lit-score .seg-expand{opacity:.28}
+
+  @media (max-width:820px){
+    .grid2,.grid3{grid-template-columns:1fr}
+    .slide{padding-bottom:96px}
+    .minimap{flex-wrap:wrap}.mm{min-width:140px;border-left:1px solid var(--line)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .slide,.bar,.bb .seg{transition:none}
+  }
+</style>
+
+</head>
+<body>
+<div class="bar" id="bar"></div>
+<div class="deckfoot">Take-Home Exercise &middot; GTM Engineering</div>
+<div class="firmmark">GTJM<span>&nbsp;Systems</span></div>
+<div class="nav">
+  <span class="counter" id="counter">01 / 11</span>
+  <button id="prev" aria-label="Previous slide">&#8592;</button>
+  <button id="next" aria-label="Next slide">&#8594;</button>
+</div>
+
+<div class="stage" id="stage">
+
+<!-- 1 · TITLE -->
+<section class="slide on">
+  <div class="inner">
+    <div class="eyebrow"><span>Nonprofit Growth-Signal Engine</span></div>
+    <h1>Signal,<br>not noise.</h1>
+    <p class="lede" style="margin-top:26px">An enrichment waterfall that finds nonprofits actively investing in fundraising capacity — and <strong>only pays for enrichment on the shortlist that earns it.</strong></p>
+    <p class="knum" style="margin-top:34px">&#8594; ARROW KEYS TO ADVANCE &middot; SLIDES 02&ndash;08 OVERVIEW &middot; SLIDES 07&ndash;09 GET INTO THE WEEDS</p>
+  </div>
+</section>
+
+<!-- 2 · THE ASK -->
+<section class="slide">
+  <div class="inner">
+    <div class="eyebrow"><span>01 &middot; The Ask</span></div>
+    <h2>Every nonprofit hiring fundraising leadership — right now.</h2>
+    <p class="lede">A sales leader wants every mid-to-large nonprofit actively hiring a <strong>Director of Development</strong> or <strong>Development Ops</strong> role:</p>
+    <div class="grid3" style="margin-top:clamp(18px,3vh,30px)">
+      <div class="card"><span class="knum">STEP A</span><h3>Found</h3><p>Swept from job boards and LinkedIn alerts into <b>one deduped ledger</b> — nothing missed, nothing counted twice.</p></div>
+      <div class="card"><span class="knum">STEP B</span><h3>Scored</h3><p>Ranked by <b>hiring urgency against true peers</b> — not by who happens to be the biggest org in the list.</p></div>
+      <div class="card"><span class="knum">STEP C</span><h3>Routed</h3><p>Real, callable contacts delivered to the right AE via <b>CRM campaign or Gong Engage</b> — fast.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · THE SHAPE -->
+<section class="slide">
+  <div class="inner lit-all">
+    <div class="eyebrow"><span>02 &middot; The Shape of the System</span></div>
+    <h2>Data moves like a barbell.</h2>
+    <p class="lede">Many raw postings narrow to <strong>one row per company</strong>, get scored down to a small outlier shortlist, then fan back out to <strong>multiple contacts per flagged org</strong>. The two pinch points are where duplicates are made — or killed.</p>
+    <figure style="margin-top:clamp(16px,3vh,28px)">
+      <svg class="bb" viewBox="0 0 1040 300" role="img" aria-label="Pipeline diagram: many postings converge to one company row, pass a scoring gate, and fan out to several contacts; non-outliers drop out at the gate.">
+        <!-- COLLECT: postings stack -->
+        <g class="seg seg-collect">
+          <rect class="box" x="60" y="47"  width="120" height="18" rx="2"/>
+          <rect class="box" x="60" y="75"  width="120" height="18" rx="2"/>
+          <rect class="box" x="60" y="103" width="120" height="18" rx="2"/>
+          <rect class="box" x="60" y="131" width="120" height="18" rx="2"/>
+          <rect class="box" x="60" y="159" width="120" height="18" rx="2"/>
+          <rect class="box" x="60" y="187" width="120" height="18" rx="2"/>
+          <rect class="box" x="60" y="215" width="120" height="18" rx="2"/>
+          <text class="lab" x="60" y="266">Postings</text>
+          <text class="sub" x="60" y="284">many &middot; scraped free</text>
+        </g>
+        <!-- SCORE: converge + company + gate -->
+        <g class="seg seg-score">
+          <line class="wire" x1="180" y1="56"  x2="348" y2="132"/>
+          <line class="wire" x1="180" y1="84"  x2="348" y2="136"/>
+          <line class="wire" x1="180" y1="112" x2="348" y2="139"/>
+          <line class="wire" x1="180" y1="140" x2="348" y2="141"/>
+          <line class="wire" x1="180" y1="168" x2="348" y2="143"/>
+          <line class="wire" x1="180" y1="196" x2="348" y2="146"/>
+          <line class="wire" x1="180" y1="224" x2="348" y2="150"/>
+          <rect class="box" x="350" y="118" width="160" height="46" rx="2"/>
+          <text class="nodetxt" x="430" y="146" text-anchor="middle">COMPANIES</text>
+          <line class="wire" x1="510" y1="141" x2="570" y2="141"/>
+          <polygon class="head" points="570,136 580,141 570,146"/>
+          <rect class="box" x="580" y="118" width="120" height="46" rx="2"/>
+          <text class="nodetxt" x="640" y="146" text-anchor="middle">SCORE</text>
+          <line class="wire drop" x1="640" y1="164" x2="640" y2="220"/>
+          <polygon class="head" points="635,220 640,230 645,220"/>
+          <text class="sub" x="640" y="252" text-anchor="middle">below the bar &#8594; no spend, no noise</text>
+          <text class="lab" x="350" y="90">dedupe &#8594; 1 row / org</text>
+          <text class="lab" x="580" y="90">outliers only</text>
+        </g>
+        <!-- EXPAND: fan out -->
+        <g class="seg seg-expand">
+          <line class="wire" x1="700" y1="139" x2="828" y2="86"/>
+          <line class="wire" x1="700" y1="140" x2="828" y2="113"/>
+          <line class="wire" x1="700" y1="141" x2="828" y2="141"/>
+          <line class="wire" x1="700" y1="142" x2="828" y2="169"/>
+          <line class="wire" x1="700" y1="143" x2="828" y2="196"/>
+          <rect class="box" x="832" y="77"  width="130" height="18" rx="2"/>
+          <rect class="box" x="832" y="105" width="130" height="18" rx="2"/>
+          <rect class="box" x="832" y="133" width="130" height="18" rx="2"/>
+          <rect class="box" x="832" y="161" width="130" height="18" rx="2"/>
+          <rect class="box" x="832" y="189" width="130" height="18" rx="2"/>
+          <text class="lab" x="832" y="266">Contacts</text>
+          <text class="sub" x="832" y="284">several per flagged org</text>
+        </g>
+      </svg>
+      <figcaption>Every posting must prove itself against the CRM before creating a company; every contact is deduped before a credit is spent.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 4 · COLLECT -->
+<section class="slide">
+  <div class="inner lit-collect">
+    <div class="eyebrow"><span>03 &middot; Phase 1 &middot; Collect</span></div>
+    <h2>Sweep everything. Spend nothing.</h2>
+    <div class="grid3">
+      <div class="card"><span class="knum">SOURCES</span><h3>Four feeds, one ledger</h3><p>Idealist, AFP Career Center, state nonprofit boards (CA, MN, MD&hellip;), plus <b>LinkedIn saved-search alert emails</b>.</p></div>
+      <div class="card"><span class="knum">MACHINERY</span><h3>Cron + Cowork</h3><p>A <b>Claude Code scraper</b> on a cron job works the boards; a <b>Cowork task</b> parses LinkedIn alerts from the connected Gmail.</p></div>
+      <div class="card"><span class="knum">DEDUPE</span><h3>JSON source of truth</h3><p>Matched on <b>posting URL</b> — or org + title + post date when no stable URL exists — before anything moves onward.</p></div>
+    </div>
+    <div class="bbclone" data-lit="lit-collect"></div>
+    <div class="minimap">
+      <div class="mm now"><span>1 &middot; Collect</span><span class="cost">$0</span></div>
+      <div class="mm"><span>2 &middot; Score</span><span class="cost">$0</span></div>
+      <div class="mm"><span>3 &middot; Expand</span><span class="cost">CREDITS</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 · SCORE -->
+<section class="slide">
+  <div class="inner lit-score">
+    <div class="eyebrow"><span>04 &middot; Phase 2 &middot; Score</span></div>
+    <h2>Compare peers, not the whole population.</h2>
+    <div class="grid3">
+      <div class="card"><span class="knum">COLLAPSE</span><h3>One row per org</h3><p>Postings dedupe on <b>normalized domain</b> into a Companies table — three concurrent reqs never become three companies.</p></div>
+      <div class="card"><span class="knum">TIER</span><h3>Size bands</h3><p>Split by employee count — <b>Mid (50&ndash;500)</b> and <b>Large (500+)</b> — so each org is only ever measured against its real peers.</p></div>
+      <div class="card"><span class="knum">FLAG</span><h3>Outliers only</h3><p>Only orgs hiring <b>beyond normal churn</b> for their tier clear the bar. Everyone else exits here, unenriched and unpaid-for.</p></div>
+    </div>
+    <div class="bbclone" data-lit="lit-score"></div>
+    <div class="minimap">
+      <div class="mm done"><span>1 &middot; Collect &#10003;</span><span class="cost">$0</span></div>
+      <div class="mm now"><span>2 &middot; Score</span><span class="cost">$0</span></div>
+      <div class="mm"><span>3 &middot; Expand</span><span class="cost">CREDITS</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 · EXPAND -->
+<section class="slide">
+  <div class="inner lit-expand">
+    <div class="eyebrow"><span>05 &middot; Phase 3 &middot; Expand</span></div>
+    <h2>Now — and only now — <span class="money">money moves.</span></h2>
+    <div class="grid3">
+      <div class="card"><span class="knum">FAN OUT</span><h3>Shortlist &#8594; people</h3><p>Each flagged org triggers <b>Find Contacts at Company</b> — target buyer titles, not just the req that tripped the flag.</p></div>
+      <div class="card"><span class="knum">GATE</span><h3>Match first, spend second</h3><p>Contacts dedupe on <b>email + LinkedIn URL</b> and check the CRM <b>before</b> any paid enrichment runs.</p></div>
+      <div class="card"><span class="knum">ROUTE</span><h3>Outreach-ready</h3><p>Enriched records converge into one shape and route to a <b>CRM Campaign or Gong Engage</b> flow for the right AE.</p></div>
+    </div>
+    <div class="bbclone" data-lit="lit-expand"></div>
+    <div class="minimap">
+      <div class="mm done"><span>1 &middot; Collect &#10003;</span><span class="cost">$0</span></div>
+      <div class="mm done"><span>2 &middot; Score &#10003;</span><span class="cost">$0</span></div>
+      <div class="mm now paid"><span>3 &middot; Expand</span><span class="cost">CREDITS SPENT HERE — ONLY HERE</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 · WEEDS: WATERFALL -->
+<section class="slide">
+  <div class="inner">
+    <div class="eyebrow"><span class="tag">The Weeds &middot; 1 of 3</span><span>Postings Enrichment Waterfall</span></div>
+    <h2>Every posting proves itself before it costs a credit.</h2>
+    <div class="wf">
+      <div class="wfrow">
+        <div class="wfnum">1</div>
+        <div class="wfbody"><h3>Match CRM by company name <span class="free">FREE</span></h3>
+          <p>Runs on every new row. Match found &#8594; attach signal to the existing Account, done. No match &#8594; step 2.</p></div>
+      </div>
+      <div class="wfrow">
+        <div class="wfnum paidnum">2</div>
+        <div class="wfbody"><h3>Clay Native Enrich <span class="paid">1 CREDIT</span></h3>
+          <p>Only fires when step 1 misses. Returns <b>domain, normalized name, LinkedIn URL, employee count</b> — real match keys instead of a fuzzy string.</p></div>
+      </div>
+      <div class="wfrow">
+        <div class="wfnum">3</div>
+        <div class="wfbody"><h3>Retry CRM match <span class="free">FREE</span></h3>
+          <p>Cascades <b>domain &#8594; LinkedIn URL &#8594; name</b>. Match &#8594; attach to Account. Miss &#8594; flag for new-Account creation.</p></div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:clamp(14px,2.5vh,22px)">
+      <div class="card"><span class="knum">WHY STEP 3 EXISTS</span><p>A name-only match misses abbreviations, punctuation, and &ldquo;Inc.&rdquo;-style variants. Domain and LinkedIn URL are far more reliable keys — the retry isn't working from a fuzzy string alone.</p></div>
+      <div class="card"><span class="knum">MECHANICS NOTES</span><p>Clay's built-in dedupe is <b>exact-match only</b> — normalization into a shared key is the load-bearing step, not the lookup. Webhook sources cap at 50k rows/table: a non-issue at this volume, flagged if sources expand.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 · WEEDS: SCORING MATH -->
+<section class="slide">
+  <div class="inner">
+    <div class="eyebrow"><span class="tag">The Weeds &middot; 2 of 3</span><span>The Scoring Table</span></div>
+    <h2>Statistical outliers, not raw counts.</h2>
+    <figure>
+      <svg class="bb" viewBox="0 0 960 190" role="img" aria-label="Strip plot of one size tier: most companies cluster inside the interquartile box; two amber points sit beyond the Q3 plus 1.5 IQR fence and are flagged with score 5.">
+        <text x="40" y="30" fill="#CBD2DE" font-size="12" font-family="IBM Plex Mono,monospace" letter-spacing=".1em">ONE TIER (e.g. MID, 50&ndash;500 EMPLOYEES) &middot; CONCURRENT OPEN POSTINGS, TRAILING 90 DAYS</text>
+        <line x1="40" y1="110" x2="920" y2="110" stroke="#4A5568" stroke-width="1.2"/>
+        <rect x="170" y="88" width="270" height="44" fill="rgba(152,162,179,.10)" stroke="#4A5568" stroke-width="1"/>
+        <text x="170" y="156" fill="#AEB7C6" font-size="11" font-family="IBM Plex Mono,monospace">Q1</text>
+        <text x="428" y="156" fill="#AEB7C6" font-size="11" font-family="IBM Plex Mono,monospace">Q3</text>
+        <circle cx="105" cy="110" r="5" fill="#4A5568"/><circle cx="150" cy="110" r="5" fill="#4A5568"/>
+        <circle cx="205" cy="110" r="5" fill="#4A5568"/><circle cx="240" cy="110" r="5" fill="#4A5568"/>
+        <circle cx="278" cy="110" r="5" fill="#4A5568"/><circle cx="312" cy="110" r="5" fill="#4A5568"/>
+        <circle cx="345" cy="110" r="5" fill="#4A5568"/><circle cx="382" cy="110" r="5" fill="#4A5568"/>
+        <circle cx="425" cy="110" r="5" fill="#4A5568"/><circle cx="470" cy="110" r="5" fill="#4A5568"/>
+        <circle cx="530" cy="110" r="5" fill="#4A5568"/><circle cx="585" cy="110" r="5" fill="#4A5568"/>
+        <line x1="660" y1="60" x2="660" y2="140" stroke="#EEF1F5" stroke-width="1.4" stroke-dasharray="5 5"/>
+        <text x="660" y="48" fill="#EEF1F5" font-size="12" font-family="IBM Plex Mono,monospace" text-anchor="middle">Q3 + 1.5&times;IQR</text>
+        <circle cx="740" cy="110" r="6" fill="#FFAD33"/>
+        <circle cx="850" cy="110" r="6" fill="#FFAD33"/>
+        <line x1="745" y1="92" x2="790" y2="70" stroke="#FFAD33" stroke-width="1.2"/>
+        <text x="798" y="66" fill="#FFAD33" font-size="12" font-family="IBM Plex Mono,monospace">flagged &#8594; score 5</text>
+        <text x="740" y="156" fill="#FFAD33" font-size="11" font-family="IBM Plex Mono,monospace">hiring beyond normal churn</text>
+      </svg>
+      <figcaption>Median + IQR within each tier — robust to the right-skew typical of small nonprofit-hiring samples.</figcaption>
+    </figure>
+    <div class="grid3" style="margin-top:clamp(12px,2vh,20px)">
+      <div class="card"><span class="knum">PRIMARY</span><h3>Median + IQR per tier</h3><p>Flag orgs whose concurrent postings exceed <b>Q3 + 1.5&times;IQR</b> for their tier. Flagged = automatic score 5.</p></div>
+      <div class="card"><span class="knum">FALLBACK</span><h3>Percentile rank</h3><p>When a tier's sample is too thin for IQR, rank by percentile in <b>bands of 20%</b> &#8594; scores 1&ndash;5.</p></div>
+      <div class="card"><span class="knum">TRIGGER</span><h3>Score 5 &#8594; find contacts</h3><p>Only a 5 fires <b>Find Contacts at Company</b>. Two counts tracked separately: Dir. of Development and Dev Ops postings.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 · WEEDS: CONTACTS -->
+<section class="slide">
+  <div class="inner">
+    <div class="eyebrow"><span class="tag">The Weeds &middot; 3 of 3</span><span>The Contacts Table</span></div>
+    <h2>Dedupe the person before enriching the person.</h2>
+    <p class="lede">Raw results land, dedupe immediately on <strong>email + LinkedIn URL</strong>, then a CRM check decides the enrichment path:</p>
+    <div class="grid3" style="margin-top:clamp(14px,2.5vh,24px)">
+      <div class="card"><span class="knum">BRANCH 1 &middot; CRM MATCH</span><h3>Full paid cascade</h3><p>LinkedIn &#8594; email waterfall &#8594; direct phone. A recognized contact justifies the full spend: <b>confirmed profile, verified email, dial-ready number.</b></p></div>
+      <div class="card"><span class="knum">BRANCH 2 &middot; NET NEW</span><h3>Cascade + routing data</h3><p>Same cascade, plus basic enrich — <b>location, title, seniority</b> — so a net-new contact carries what routing needs.</p></div>
+      <div class="card"><span class="knum">BRANCH 3 &middot; RETRY</span><h3>Re-match with more data</h3><p>Cascades <b>email &#8594; LinkedIn &#8594; name</b>. Match &#8594; attach to existing contact. Miss &#8594; flag for new contact/lead creation.</p></div>
+    </div>
+    <div class="card" style="margin-top:clamp(12px,2vh,20px);border-color:var(--amber);background:var(--amber-dim)">
+      <p style="color:var(--text)"><b class="money">Why the repeated CRM checks?</b> Clay writes to the CRM over API — which typically <b>bypasses CRM dedupe rules on object creation</b>. Matching here is the single rule keeping duplicate Accounts and Contacts out of Salesforce, and it lowers enrichment cost. Both branches converge into one outreach-ready record &#8594; <b>CRM Campaign or Gong Engage</b>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 10 · OBJECTIONS -->
+<section class="slide">
+  <div class="inner">
+    <div class="eyebrow"><span>06 &middot; Design Rationale</span></div>
+    <h2>The objections, answered.</h2>
+    <div class="grid2">
+      <div class="card"><span class="knum">&ldquo;WHY NOT SCORE BY NUMBER OF OPENINGS?&rdquo;</span><p>A raw count just re-ranks the biggest organizations. It rewards <b>size, not intent</b> — exactly the vanity metric this system exists to avoid.</p></div>
+      <div class="card"><span class="knum">&ldquo;WHY NOT HAVE CLAY FIND THE POSTINGS?&rdquo;</span><p>Discovery at scale burns paid credits on records that mostly won't clear the bar. A scraper is <b>nearly free</b> — it needs an occasional Claude Code fix when a site's HTML shifts.</p></div>
+      <div class="card"><span class="knum">&ldquo;WHY SO MANY CRM CHECKS?&rdquo;</span><p>API writes typically ignore CRM dedupe rules on creation. Checks are the dedupe — and they cut spend. The goal is <b>finding an opportunity, not mass enrichment</b>.</p></div>
+      <div class="card"><span class="knum">&ldquo;WHAT IF THE POSTING CLOSES?&rdquo;</span><p>The lead doesn't go stale. The org already cleared the outlier bar; its contacts are <b>real, callable people</b> at a company demonstrably investing in fundraising capacity. Re-check the posting before quoting it — refresh the <b>talk track</b>, not the lead.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 · BOTTOM LINE -->
+<section class="slide">
+  <div class="inner">
+    <div class="eyebrow"><span>07 &middot; Bottom Line</span></div>
+    <h2 style="font-size:clamp(32px,5vw,62px)">One question, answered honestly:</h2>
+    <p class="lede" style="font-size:clamp(19px,2.2vw,26px);max-width:56ch;color:var(--text)">Which nonprofits are investing in fundraising capacity <span class="money">right now</span>, beyond what normal turnover explains — and <span class="money">who, specifically,</span> should an AE call about it?</p>
+    <p class="lede" style="margin-top:clamp(16px,3vh,26px)">Everything after Collect exists to protect that answer from <strong>noise, duplication, and unnecessary spend.</strong></p>
+    <div class="minimap" style="max-width:760px">
+      <div class="mm done"><span>Collect &#10003;</span><span class="cost">$0</span></div>
+      <div class="mm done"><span>Score &#10003;</span><span class="cost">$0</span></div>
+      <div class="mm now paid"><span>Expand</span><span class="cost">SHORTLIST ONLY</span></div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /stage -->
+
+<style>
+  /* waterfall rows (weeds slide 1) */
+  .wf{display:flex;flex-direction:column}
+  .wfrow{display:grid;grid-template-columns:56px 1fr;gap:18px;align-items:start;position:relative;
+    padding:clamp(10px,1.6vh,16px) 0}
+  .wfrow + .wfrow{border-top:1px dashed var(--line)}
+  .wfnum{width:40px;height:40px;border:1.5px solid var(--mut);border-radius:2px;display:flex;align-items:center;
+    justify-content:center;font-family:var(--mono);font-weight:600;font-size:16px;color:var(--text);background:var(--panel)}
+  .wfnum.paidnum{border-color:var(--amber);color:var(--amber);background:var(--amber-dim)}
+  .wfbody h3{font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .wfbody p{font-size:14.5px;color:var(--body);max-width:78ch;margin-top:4px}
+  .wfbody p b{color:var(--text);font-weight:600}
+  .free,.paid{font-family:var(--mono);font-size:10px;letter-spacing:.18em;padding:3px 8px;border-radius:2px}
+  .free{color:var(--mut);border:1px solid var(--line)}
+  .paid{color:var(--ink);background:var(--amber);font-weight:600}
+  .bbclone{margin-top:clamp(14px,2.5vh,24px)}
+  .bbclone svg{display:block;max-width:820px;height:auto}
+</style>
+
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var i=0,bar=document.getElementById('bar'),counter=document.getElementById('counter');
+  var pad=function(n){return (n<10?'0':'')+n};
+
+  // clone master barbell into phase slides, lit per phase
+  var master=document.querySelector('.bb');
+  [].slice.call(document.querySelectorAll('.bbclone')).forEach(function(ph,k){
+    var svg=master.cloneNode(true);
+    var fig=document.createElement('figure'); fig.appendChild(svg); ph.appendChild(fig);
+  });
+
+  function go(n){
+    if(n<0||n>=slides.length||n===i&&slides[n].classList.contains('on'))return;
+    slides[i].classList.remove('on'); i=n; slides[i].classList.add('on');
+    render();
+  }
+  function render(){
+    bar.style.width=((i+1)/slides.length*100)+'%';
+    counter.textContent=pad(i+1)+' / '+pad(slides.length);
+    slides[i].scrollTop=0;
+  }
+  document.getElementById('next').addEventListener('click',function(){go(i+1)});
+  document.getElementById('prev').addEventListener('click',function(){go(i-1)});
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '&&!e.shiftKey){e.preventDefault();go(i+1)}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key===' '&&e.shiftKey){e.preventDefault();go(i-1)}
+    else if(e.key==='Home'){go(0)} else if(e.key==='End'){go(slides.length-1)}
+  });
+  // touch swipe
+  var tx=null;
+  document.addEventListener('touchstart',function(e){tx=e.touches[0].clientX},{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(tx===null)return; var dx=e.changedTouches[0].clientX-tx;
+    if(Math.abs(dx)>60){dx<0?go(i+1):go(i-1)} tx=null;
+  },{passive:true});
+  render();
+})();
+</script>
+</body>
+</html>

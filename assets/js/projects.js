@@ -16,6 +16,24 @@
 
 const PROJECTS = [
   {
+    title: "Clay Enrichment Waterfall",
+    year: "2026",
+    kind: "Build",
+    blurb:
+      "A tiered account enrichment and validation system built in Clay to make a Salesforce instance trustworthy enough to route and report on — spending enrichment credits by segment value instead of uniformly. Built, never launched.",
+    tags: ["RevOps", "Clay", "Salesforce", "Data Quality"],
+    href: "projects/clay-enrichment-waterfall.html",
+  },
+  {
+    title: "Nonprofit Growth-Signal Engine",
+    year: "2026",
+    kind: "Take-home · GTM Engineering",
+    blurb:
+      "An enrichment waterfall that finds nonprofits hiring fundraising leadership beyond normal churn — and only spends enrichment credits on the shortlist that earns it. Includes a slide deck and a written technical brief.",
+    tags: ["GTM Engineering", "Clay", "Salesforce", "Data Modeling"],
+    href: "projects/signal-engine.html",
+  },
+  {
     title: "Fantasy Baseball Platform",
     year: "2026",
     kind: "Build",
@@ -23,25 +41,5 @@ const PROJECTS = [
       "A Postgres-backed fantasy baseball application that folds a prospect database, a trade evaluator, and a draft tool into one system wired to live MLB data.",
     tags: ["Postgres", "Python", "Data Modeling", "APIs"],
     href: "projects/fantasy-baseball.html",
-  },
-  {
-    title: "Placeholder — RevOps Case Study",
-    year: "2026",
-    kind: "Case study",
-    blurb:
-      "Replace this entry in assets/js/projects.js. A good case study names the problem, the constraint you were working under, what you built, and what changed as a result.",
-    tags: ["RevOps", "Salesforce", "Process"],
-    href: "projects/_template.html",
-    draft: true,
-  },
-  {
-    title: "Placeholder — Analysis or Tool",
-    year: "2025",
-    kind: "Analysis",
-    blurb:
-      "Copy projects/_template.html to a new file, write it up, then point a new entry here at it.",
-    tags: ["SQL", "Reporting"],
-    href: "projects/_template.html",
-    draft: true,
   },
 ];

@@ -537,3 +537,106 @@ section { scroll-margin-top: 80px; }
   * { transition: none !important; animation: none !important; }
   html { scroll-behavior: auto; }
 }
+
+/* ---------- deck embed + document links (case study pages) ---------- */
+
+.embed {
+  position: relative;
+  margin: 2rem 0 .9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #0B0E13;
+  aspect-ratio: 16 / 10;
+}
+
+.embed iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+@media (max-width: 700px) {
+  .embed { display: none; }
+}
+
+.doclinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .7rem;
+  margin: 1.1rem 0 2.6rem;
+}
+
+.embed-note {
+  font-family: var(--mono);
+  font-size: .74rem;
+  letter-spacing: .04em;
+  color: var(--text-dim);
+  margin: 0;
+}
+
+/* ---------- callout + tables (case study pages) ---------- */
+
+.callout {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--ink-2);
+  padding: 1.15rem 1.3rem;
+  margin: 2rem 0;
+  max-width: 68ch;
+}
+
+.callout h4 {
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 .5rem;
+}
+
+.callout p { margin: 0; color: var(--text-dim); font-size: .95rem; }
+.callout p + p { margin-top: .6rem; }
+
+.table-wrap {
+  overflow-x: auto;
+  margin: 1.6rem 0 2rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .92rem;
+  min-width: 520px;
+}
+
+thead th {
+  text-align: left;
+  font-family: var(--mono);
+  font-size: .7rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  padding: .85rem 1rem;
+  background: var(--ink-3);
+  white-space: nowrap;
+}
+
+tbody td {
+  padding: .8rem 1rem;
+  border-top: 1px solid var(--line);
+  color: var(--text-dim);
+  vertical-align: top;
+}
+
+tbody td:first-child {
+  color: var(--text);
+  font-weight: 600;
+  white-space: nowrap;
+}

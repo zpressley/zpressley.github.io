@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clay Enrichment Waterfall — Zach Pressley</title>
+<meta name="description" content="A tiered account enrichment and validation system built in Clay to make a Salesforce instance trustworthy enough to route and report on — spending enrichment credits by segment value rather than uniformly.">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a class="nav__mark" href="../index.html">Zach Pressley<span>.</span></a>
+    <div class="nav__links">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#contact">Contact</a>
+      <button class="theme-toggle" type="button" aria-label="Switch theme">☀</button>
+    </div>
+  </div>
+</nav>
+
+<main class="case">
+  <div class="wrap">
+    <a class="back" href="../index.html#work">← All work</a>
+
+    <h1>Clay Enrichment Waterfall</h1>
+    <p class="case__lede">
+      A tiered account enrichment and validation system built in Clay, designed to turn a CRM
+      full of half-filled records into something you can actually route and report on — and to
+      spend enrichment credits in proportion to what an account is worth.
+    </p>
+
+    <dl class="facts">
+      <div class="fact"><dt>Role</dt><dd>Design &amp; build · Revenue Operations</dd></div>
+      <div class="fact"><dt>Timeline</dt><dd>2026 · at Anaconda</dd></div>
+      <div class="fact"><dt>Stack</dt><dd>Clay, Salesforce (SOQL, Apex), HG Insights, ZoomInfo, PDL</dd></div>
+      <div class="fact"><dt>Status</dt><dd>Built, never launched</dd></div>
+    </dl>
+
+    <div class="callout">
+      <h4>Read this first</h4>
+      <p>
+        This system was fully designed and built in Clay, and was scheduled to go live the week I
+        was laid off. It never ran in production. Everything below describes the intended
+        operating model and the reasoning behind it — there are no measured results, because there
+        was never a chance to measure any.
+      </p>
+      <p>
+        I'd rather show the thinking with that caveat attached than quietly imply an outcome that
+        never happened.
+      </p>
+    </div>
+
+    <div class="prose">
+      <h2>The problem</h2>
+      <p>
+        Account and contact data quality was inconsistent in ways that compounded: missing
+        firmographics, unclear parent/child structures, duplicate accounts, and stale records with
+        no activity against them. Each of those is survivable alone. Together they meant reporting
+        that couldn't be trusted, routing that sent accounts to the wrong rep, and reps who had
+        learned not to believe what the CRM told them.
+      </p>
+      <p>
+        Enrichment is the obvious answer and also the obvious trap: enrich everything and you pay
+        the same premium for a 40-person company you'll never sell to as for a 30,000-person
+        enterprise account.
+      </p>
+
+      <h2>The research that came first</h2>
+      <p>
+        Employee count was the primary driver of segment, and segment drove AE assignment. That
+        made employee count the single most load-bearing field in the system — so before designing
+        anything, I went and found out which source could actually be trusted.
+      </p>
+      <ul>
+        <li>Sampled 240 accounts across four size bands — small, medium, large, very large.</li>
+        <li>
+          Benchmarked each enrichment provider's employee count against public sources: 10-K
+          filings and company websites.
+        </li>
+        <li>
+          Found HG Insights was the gold standard across bands and geographies. ZoomInfo, Clay's
+          native enrichment, and People Data Labs all showed variance that depended on how big the
+          company was and where it was based — reliable in some bands, not in others.
+        </li>
+      </ul>
+      <p>
+        That left the edge cases, so I refined an employee-count validation prompt until it was
+        reliable enough to serve as a tie-breaker in the two situations that actually mattered:
+        when CRM and enrichment disagreed sharply, and when the enriched value would move an
+        account into a different segment tier — which is to say, when getting it wrong would hand
+        the account to the wrong rep.
+      </p>
+
+      <h2>Segments</h2>
+      <p>Employee count set the tier, and the tier set everything downstream.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Tier</th><th>Employee count</th><th>Note</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Below 200</td><td>Under 200</td><td>Not a target — the product is free below 200 employees</td></tr>
+            <tr><td>CM</td><td>200–999</td><td>Commercial</td></tr>
+            <tr><td>MM</td><td>1,000–9,999</td><td>Mid-market</td></tr>
+            <tr><td>ENT</td><td>10,000+</td><td>Enterprise</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>The waterfall</h2>
+      <p>
+        Every account got a baseline. What it got beyond that depended on what it was worth
+        pursuing — the deeper and costlier enrichment was reserved for MM and ENT rather than
+        sprayed across the whole database.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Tier</th><th>What gets enriched</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Baseline</td>
+              <td>Employee count, HQ, industry/SIC, parent-account check</td>
+            </tr>
+            <tr>
+              <td>Below 200</td>
+              <td>Baseline plus parent check — the lowest spend in the model</td>
+            </tr>
+            <tr>
+              <td>CM</td>
+              <td>Baseline plus LinkedIn URL and parent check</td>
+            </tr>
+            <tr>
+              <td>MM</td>
+              <td>Baseline plus LinkedIn URL, tech spend, parent/child checks, public and AI research as needed, partner intel</td>
+            </tr>
+            <tr>
+              <td>ENT</td>
+              <td>Everything in MM, plus deeper research, explicit child-account discovery, and partner intel</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Validation, not just enrichment</h2>
+      <p>
+        Filling fields in once is a project. Keeping them true is an operating model — so the
+        second half of the design was a recurring hygiene layer with an owner and a cadence rather
+        than a cleanup someone remembers to do in a slow quarter.
+      </p>
+      <ul>
+        <li>Account name sweep to flag duplicates and junk records — roughly every six months</li>
+        <li>Data-quality account cleanup and reporting — roughly quarterly</li>
+        <li>Activity staleness checks — monthly and quarterly</li>
+        <li>Missing domain and country remediation — quarterly</li>
+        <li>Employee count verification against brokers and public sources, weighted toward MM and ENT</li>
+      </ul>
+      <p>
+        Deduplication got its own operating model: Salesforce duplicate rules to catch what they
+        could, recurring SOQL pulls to surface what slipped past them, and an Apex-based merge
+        workflow to execute the cleanup automatically rather than through someone's manual queue.
+        Contacts got a lighter version — no-activity cleanup, email validation, and normalization
+        of the profile fields that marketing and PLG targeting actually depend on.
+      </p>
+
+      <h2>What it produced</h2>
+      <ul>
+        <li>A documented enrichment spec — attributes, sources, and rules, by tier</li>
+        <li>A validation checklist with recurring hygiene jobs and reporting attached</li>
+        <li>A dedupe playbook: the rules, the query, and the merge procedure</li>
+        <li>A focused set of contact hygiene rules aligned to PLG and marketing targeting</li>
+      </ul>
+
+      <h2>What it was built to do</h2>
+      <p>
+        Stated as intent, because that's all it ever got to be: improve completeness on the core
+        firmographic and hierarchy fields that routing depends on — domain, country, employee
+        count, HQ, industry, parent/child — cut duplicate and junk accounts out of the segmentation
+        logic, and replace ad hoc cleanup with scheduled, repeatable data-quality operations.
+      </p>
+      <p>
+        The part I'd defend regardless of whether it ever ran: the spend model. Uniform enrichment
+        treats a database as a list of equally valuable rows, which it never is. Tiering the
+        waterfall means the accounts worth understanding deeply get understood deeply, and the rest
+        cost almost nothing to keep clean.
+      </p>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <span>© <span id="year">2026</span> Zach Pressley</span>
+    <a href="../index.html#work">← All work</a>
+  </div>
+</footer>
+
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

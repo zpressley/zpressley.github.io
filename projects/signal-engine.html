@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nonprofit Growth-Signal Engine — Zach Pressley</title>
+<meta name="description" content="A GTM engineering take-home: an enrichment waterfall that finds nonprofits actively investing in fundraising capacity, and only pays for enrichment on the shortlist that earns it.">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a class="nav__mark" href="../index.html">Zach Pressley<span>.</span></a>
+    <div class="nav__links">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#contact">Contact</a>
+      <button class="theme-toggle" type="button" aria-label="Switch theme">☀</button>
+    </div>
+  </div>
+</nav>
+
+<main class="case">
+  <div class="wrap">
+    <a class="back" href="../index.html#work">← All work</a>
+
+    <h1>Nonprofit Growth-Signal Engine</h1>
+    <p class="case__lede">
+      A GTM engineering take-home: design a system that finds every nonprofit actively hiring
+      fundraising leadership, ranks them by real hiring intensity, and puts callable contacts in
+      front of an AE — without spending enrichment credits on the records that were never going
+      to qualify.
+    </p>
+
+    <dl class="facts">
+      <div class="fact"><dt>Format</dt><dd>Take-home exercise · GTM Engineering</dd></div>
+      <div class="fact"><dt>Timeline</dt><dd>2026</dd></div>
+      <div class="fact"><dt>Stack</dt><dd>Clay, Claude Code, Salesforce, Gong Engage</dd></div>
+      <div class="fact"><dt>Deliverable</dt><dd>System design + slide deck</dd></div>
+    </dl>
+
+    <div class="embed">
+      <iframe src="../decks/signal-not-noise.html" title="Signal, Not Noise — slide deck" loading="lazy"></iframe>
+    </div>
+    <p class="embed-note">Click into the deck, then use ← → to move between slides.</p>
+    <div class="doclinks">
+      <a class="btn btn--primary" href="../decks/signal-not-noise.html" target="_blank" rel="noopener">Open the deck full screen ↗</a>
+      <a class="btn" href="../assets/files/nonprofit-growth-signal-engine-brief.pdf" target="_blank" rel="noopener">Read the written brief (PDF) ↗</a>
+    </div>
+
+    <div class="prose">
+      <h2>The ask</h2>
+      <p>
+        A sales leader wants every mid-to-large nonprofit currently hiring a Director of
+        Development or a Development Operations role — found, scored by urgency, and routed to
+        the right rep quickly. The interesting part isn't the search. It's that paid enrichment
+        makes a naive version of this expensive: enrich everything you find, and most of the
+        spend lands on organizations that were never going to clear the bar.
+      </p>
+
+      <h2>The shape of the problem</h2>
+      <p>
+        Data volume in this pipeline moves like a barbell. Many raw postings narrow to one row
+        per company, get scored down to a small outlier shortlist, then fan back out to several
+        contacts per flagged organization. Both pinch points are where duplicates get made — or
+        killed.
+      </p>
+      <ul>
+        <li>
+          <strong>The narrow neck (postings → companies).</strong> Every posting has to prove
+          itself against the CRM before it can create or attach to a company record. Skip that
+          and one org with three concurrent reqs becomes three duplicate accounts.
+        </li>
+        <li>
+          <strong>The wide end (companies → contacts).</strong> One flagged company surfaces
+          several target-title contacts, and the same person can surface twice if more than one
+          posting triggered the search. Contacts dedupe on email and LinkedIn URL, and match
+          against the CRM, before any paid enrichment runs.
+        </li>
+      </ul>
+
+      <h2>How it runs</h2>
+      <p>Three phases, and each one spends money differently.</p>
+
+      <h3>1 · Collect — sweep everything, spend nothing</h3>
+      <p>
+        A Claude Code scraper on a cron job works Idealist, the AFP Career Center, and state
+        nonprofit association boards. A Cowork task parses LinkedIn saved-search alert emails out
+        of a connected Gmail account. Everything lands in one deduped JSON ledger, matched on
+        posting URL — or on organization plus title plus post date where no stable URL exists.
+        Storage and comparison cost nothing per record, so this layer stays effectively free.
+      </p>
+
+      <h3>2 · Score — compare peers, not the whole population</h3>
+      <p>
+        Postings collapse on normalized domain into a Companies table, one row per organization
+        regardless of how many concurrent reqs it has. Those companies split into employee-count
+        tiers, and each tier is scored independently against a median and interquartile range.
+        An organization whose concurrent postings exceed <code>Q3 + 1.5 × IQR</code> for its tier
+        is hiring beyond what normal churn explains — that's the signal, and it scores a 5. Where
+        a tier's sample is too thin for IQR to mean anything, percentile rank in bands of 20%
+        stands in. Still no credits spent.
+      </p>
+
+      <h3>3 · Expand — now, and only now, money moves</h3>
+      <p>
+        A score of 5 fires <em>Find Contacts at Company</em>, searching target buyer titles rather
+        than the requisition that tripped the flag. Results dedupe on email plus LinkedIn URL, then
+        a CRM check decides the enrichment path: a recognized contact justifies the full paid
+        cascade, a net-new contact gets the same cascade plus the basic attributes routing needs.
+        Both branches converge on one outreach-ready record and route to a CRM campaign or a Gong
+        Engage flow.
+      </p>
+
+      <h2>Decisions worth defending</h2>
+      <ul>
+        <li>
+          <strong>Match to CRM before spending credits, at both the account and contact level.</strong>
+          Clay writes to the CRM over API, which typically bypasses CRM dedupe rules on object
+          creation. These checks <em>are</em> the dedupe — and they cut spend at the same time.
+        </li>
+        <li>
+          <strong>Score against peer tiers, not the raw population.</strong> A flat count of open
+          postings just re-ranks the biggest organizations. It rewards size, not intent — the
+          exact vanity metric the system exists to avoid.
+        </li>
+        <li>
+          <strong>Reserve paid discovery for the shortlist.</strong> Letting the enrichment
+          platform find postings burns credits on records that mostly won't qualify. A scraper is
+          nearly free and only needs a fix when a source site changes its HTML.
+        </li>
+        <li>
+          <strong>Normalize before you dedupe.</strong> Clay's built-in dedupe is exact-match only,
+          so it won't catch "Acme Inc" against "Acme, Inc." Normalizing name and domain into a
+          shared key is the load-bearing step — not the lookup that follows it.
+        </li>
+      </ul>
+
+      <h2>Why the lead doesn't go stale</h2>
+      <p>
+        A specific requisition can fill or expire, but the organization already cleared the outlier
+        bar. What's real and current is its demonstrated investment in fundraising capacity, not the
+        literal job posting — and the target-title contacts remain callable people at a company that
+        is spending on this problem right now. When a posting closes, refresh the talk track, not the
+        lead.
+      </p>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <span>© <span id="year">2026</span> Zach Pressley</span>
+    <a href="../index.html#work">← All work</a>
+  </div>
+</footer>
+
+<script src="../assets/js/main.js"></script>
+</body>
+</html>
