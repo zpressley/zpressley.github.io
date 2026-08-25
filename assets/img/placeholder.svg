@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <rect width="800" height="450" fill="#12181d"/>
+  <rect x="1" y="1" width="798" height="448" fill="none" stroke="#2a343d"/>
+  <text x="400" y="228" text-anchor="middle" font-family="monospace" font-size="18" fill="#9aa8b4" letter-spacing="3">SCREENSHOT GOES HERE</text>
+</svg>

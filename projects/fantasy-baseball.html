@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fantasy Baseball Platform — Zach Pressley</title>
+<meta name="description" content="A Postgres-backed fantasy baseball application combining a prospect database, trade evaluator, and draft tool against live MLB data.">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a class="nav__mark" href="../index.html">Zach Pressley<span>.</span></a>
+    <div class="nav__links">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#contact">Contact</a>
+      <button class="theme-toggle" type="button" aria-label="Switch theme">☀</button>
+    </div>
+  </div>
+</nav>
+
+<main class="case">
+  <div class="wrap">
+    <a class="back" href="../index.html#work">← All work</a>
+
+    <h1>Fantasy Baseball Platform</h1>
+    <p class="case__lede">
+      Three separate tools — a prospect database, a trade evaluator, and a draft app — rebuilt
+      as one Postgres-backed application wired to live MLB data.
+    </p>
+
+    <dl class="facts">
+      <div class="fact"><dt>Role</dt><dd>Design &amp; build</dd></div>
+      <div class="fact"><dt>Timeline</dt><dd>2026 — ongoing</dd></div>
+      <div class="fact"><dt>Stack</dt><dd>Postgres, Python, MLB data APIs</dd></div>
+      <div class="fact"><dt>Status</dt><dd>In progress</dd></div>
+    </dl>
+
+    <div class="prose">
+      <h2>The problem</h2>
+      <p>
+        The three tools each solved one piece of a fantasy season and none of them talked to
+        each other. Prospect research lived in one place, trade math in another, and draft-day
+        decisions in a third — so the same player existed three times, under three shapes, with
+        no shared truth about who he was or how he was performing.
+      </p>
+
+      <h2>What I'm building</h2>
+      <p>
+        A single Postgres schema that treats players as the primary entity and everything else —
+        prospect grades, trade valuations, draft board position, live season stats — as
+        attributes hanging off it, synced against live MLB data.
+      </p>
+      <ul>
+        <li>One player identity, resolved across sources that don't agree on IDs or naming</li>
+        <li>A sync layer that keeps live stats current without re-ingesting the world every run</li>
+        <li>Trade and draft logic reading from the same tables, so valuations never drift apart</li>
+      </ul>
+
+      <h2>Notes</h2>
+      <p>
+        <em>Replace this section with the details worth showing — schema decisions, the sync
+        design, a screenshot of the draft board. This page is live but unfinished on purpose.</em>
+      </p>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <span>© <span id="year">2026</span> Zach Pressley</span>
+    <a href="../index.html#work">← All work</a>
+  </div>
+</footer>
+
+<script src="../assets/js/main.js"></script>
+</body>
+</html>
