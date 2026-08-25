@@ -640,3 +640,17 @@ tbody td:first-child {
   font-weight: 600;
   white-space: nowrap;
 }
+
+/* ---------- narrow screens: keep the nav on one line ---------- */
+
+@media (max-width: 560px) {
+  .nav__inner { height: 56px; }
+  .nav__mark { font-size: .72rem; letter-spacing: .1em; }
+  .nav__links { gap: .62rem; font-size: .68rem; letter-spacing: .05em; }
+  .theme-toggle { width: 26px; height: 26px; font-size: .75rem; }
+}
+
+@media (max-width: 380px) {
+  .nav__links { gap: .5rem; font-size: .64rem; }
+  .nav__mark { font-size: .66rem; }
+}

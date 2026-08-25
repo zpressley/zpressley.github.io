@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pantheon Leagues — Zachary Pressley</title>
+<meta name="description" content="A fantasy baseball platform built from scratch: live draft and auction tooling, a custom league-currency system with a salary-cap calculator, and a migration of 12+ years of league history off Yahoo Fantasy Sports.">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a class="nav__mark" href="../index.html">Zach Pressley<span>.</span></a>
+    <div class="nav__links">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#about">About</a>
+      <a href="../assets/files/zach-pressley-resume.pdf" target="_blank" rel="noopener">Résumé</a>
+      <a href="../index.html#contact">Contact</a>
+      <button class="theme-toggle" type="button" aria-label="Switch theme">☀</button>
+    </div>
+  </div>
+</nav>
+
+<main class="case">
+  <div class="wrap">
+    <a class="back" href="../index.html#work">← All work</a>
+
+    <h1>Pantheon Leagues</h1>
+    <p class="case__lede">
+      A fantasy baseball platform built from scratch — live draft and auction tooling, a league
+      economy with its own currency and salary cap, and twelve years of league history carried
+      off Yahoo Fantasy Sports without losing any of it.
+    </p>
+
+    <dl class="facts">
+      <div class="fact"><dt>Role</dt><dd>Architecture &amp; build</dd></div>
+      <div class="fact"><dt>Timeline</dt><dd>Ongoing</dd></div>
+      <div class="fact"><dt>Stack</dt><dd>Postgres, Python, live sports data APIs</dd></div>
+      <div class="fact"><dt>Live at</dt><dd><a href="https://pantheonleagues.com" target="_blank" rel="noopener">pantheonleagues.com ↗</a></dd></div>
+    </dl>
+
+    <div class="prose">
+      <h2>Why build it</h2>
+      <p>
+        Off-the-shelf fantasy platforms assume every league plays the same way. Ours didn't — a
+        keeper format with its own currency, a salary cap, and rules that had accumulated over a
+        decade of play. Running it meant a spreadsheet beside the platform, and eventually the
+        spreadsheet was where the league actually lived.
+      </p>
+      <p>
+        Three separate tools grew out of that: a prospect database, a trade evaluator, and a
+        draft app. Each one solved a piece of a season, and none of them talked to the others —
+        so the same player existed three times, in three shapes, with no shared truth about who
+        he was or how he was performing.
+      </p>
+
+      <h2>What it is now</h2>
+      <p>
+        One Postgres-backed application where the player is the primary entity and everything
+        else — prospect grades, contract and salary state, draft board position, live season
+        stats — hangs off it.
+      </p>
+      <ul>
+        <li>
+          <strong>Live draft and auction tooling.</strong> Real-time bidding and pick management,
+          with cap and roster validity enforced as picks land rather than reconciled afterward.
+        </li>
+        <li>
+          <strong>A league economy.</strong> A custom currency with a salary-cap calculator, so a
+          trade's legality and its cap consequences are answerable at the moment it's proposed.
+        </li>
+        <li>
+          <strong>Twelve-plus years of history, migrated.</strong> Every season carried off Yahoo
+          Fantasy Sports — which meant reconciling player identities across a decade of roster
+          data, trades, and name changes into one identity per player.
+        </li>
+        <li>
+          <strong>Live data sync.</strong> Season stats stay current without re-ingesting the
+          world on every run.
+        </li>
+      </ul>
+
+      <h2>The interesting problem</h2>
+      <p>
+        Player identity. Sources don't agree on IDs, don't agree on naming, and a decade of
+        archived league data agrees with neither. Nearly everything else in the system — trade
+        valuation, cap math, draft board position, historical records — is only as trustworthy as
+        the resolution layer underneath it, which is the same problem I spend my working life on
+        with accounts and contacts, in a domain where I happen to know every record personally.
+      </p>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <span>© <span id="year">2026</span> Zachary Pressley</span>
+    <a href="../index.html#work">← All work</a>
+  </div>
+</footer>
+
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

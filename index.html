@@ -3,13 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Zach Pressley — GTM &amp; Revenue Operations</title>
-<meta name="description" content="Portfolio of Zach Pressley — GTM, revenue, and sales operations work: systems, data, and the processes that connect them.">
+<title>Zachary Pressley — GTM &amp; Revenue Operations</title>
+<meta name="description" content="Portfolio of Zachary Pressley — GTM, revenue, and sales operations: lead routing, territory design, CRM data quality, and the internal tooling that removes the manual steps.">
 <meta name="color-scheme" content="dark light">
+<link rel="canonical" href="https://zpressley.github.io/">
 
-<meta property="og:title" content="Zach Pressley — GTM &amp; Revenue Operations">
-<meta property="og:description" content="Systems, data, and the processes that connect them.">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="Zachary Pressley">
+<meta property="og:url" content="https://zpressley.github.io/">
+<meta property="og:title" content="Zachary Pressley — GTM &amp; Revenue Operations">
+<meta property="og:description" content="I build the systems revenue runs on. Lead routing, territory design, CRM data quality, and the internal tooling that removes the manual steps.">
+<meta property="og:image" content="https://zpressley.github.io/assets/img/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Zachary Pressley — I build the systems revenue runs on.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Zachary Pressley — GTM &amp; Revenue Operations">
+<meta name="twitter:description" content="I build the systems revenue runs on.">
+<meta name="twitter:image" content="https://zpressley.github.io/assets/img/og-image.png">
 
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230b0f12'/><text y='68' x='50' text-anchor='middle' font-size='58' font-family='monospace' fill='%2317a6a0'>Z</text></svg>">
@@ -22,6 +33,7 @@
     <div class="nav__links">
       <a href="#work">Work</a>
       <a href="#about">About</a>
+      <a href="assets/files/zach-pressley-resume.pdf" target="_blank" rel="noopener">Résumé</a>
       <a href="#contact">Contact</a>
       <button class="theme-toggle" type="button" aria-label="Switch theme">☀</button>
     </div>
@@ -33,13 +45,14 @@
     <p class="eyebrow">GTM &middot; Revenue &middot; Sales Operations</p>
     <h1>I build the systems <em>revenue</em> runs on.</h1>
     <p>
-      Operations work that connects the tooling, the data, and the people using both — from
-      pipeline reporting and process design to the small internal apps that remove the manual
-      steps nobody should still be doing by hand.
+      Operations work that connects the tooling, the data, and the people using both — lead
+      routing and territory design, CRM data you can actually trust, and the internal tooling
+      that removes the manual steps nobody should still be doing by hand.
     </p>
     <div class="cta-row">
       <a class="btn btn--primary" href="#work">See the work →</a>
-      <a class="btn" href="#contact">Get in touch</a>
+      <a class="btn" href="assets/files/zach-pressley-resume.pdf" target="_blank" rel="noopener">Résumé (PDF) ↗</a>
+      <a class="btn" href="https://calendly.com/zpressley/30min" target="_blank" rel="noopener">Book a call ↗</a>
     </div>
   </div>
 </header>
@@ -51,7 +64,54 @@
       <span class="count" id="project-count"></span>
     </div>
     <div class="filters" id="filters"></div>
-    <div class="grid" id="project-grid"></div>
+
+    <!-- Project cards are plain HTML on purpose, so search engines and link
+         previews can read them. To add a project, copy one block. -->
+    <div class="grid" id="project-grid">
+
+      <a class="card" href="projects/clay-enrichment-waterfall.html">
+        <div class="card__meta"><span>Build</span><span class="year">2026</span></div>
+        <h3>Clay Enrichment Waterfall</h3>
+        <p>
+          A tiered account enrichment and validation system built in Clay to make a Salesforce
+          instance trustworthy enough to route and report on — spending enrichment credits by
+          segment value instead of uniformly. Built, never launched.
+        </p>
+        <div class="tags">
+          <span class="tag">RevOps</span><span class="tag">Clay</span><span class="tag">Salesforce</span><span class="tag">Data Quality</span>
+        </div>
+        <div class="card__go">Read →</div>
+      </a>
+
+      <a class="card" href="projects/signal-engine.html">
+        <div class="card__meta"><span>Take-home &middot; GTM Engineering</span><span class="year">2026</span></div>
+        <h3>Nonprofit Growth-Signal Engine</h3>
+        <p>
+          An enrichment waterfall that finds nonprofits hiring fundraising leadership beyond
+          normal churn — and only spends enrichment credits on the shortlist that earns it.
+          Includes a slide deck and a written technical brief.
+        </p>
+        <div class="tags">
+          <span class="tag">GTM Engineering</span><span class="tag">Clay</span><span class="tag">Salesforce</span><span class="tag">Data Modeling</span>
+        </div>
+        <div class="card__go">Read →</div>
+      </a>
+
+      <a class="card" href="projects/pantheon-leagues.html">
+        <div class="card__meta"><span>Build</span><span class="year">2026</span></div>
+        <h3>Pantheon Leagues</h3>
+        <p>
+          A fantasy baseball platform built from scratch: live draft and auction tooling, a custom
+          league-currency system with its own salary-cap calculator, and a full migration of 12+
+          years of league history off Yahoo Fantasy Sports.
+        </p>
+        <div class="tags">
+          <span class="tag">Postgres</span><span class="tag">Python</span><span class="tag">Data Modeling</span><span class="tag">APIs</span>
+        </div>
+        <div class="card__go">Read →</div>
+      </a>
+
+    </div>
   </div>
 </section>
 
@@ -61,18 +121,21 @@
     <div class="about">
       <div>
         <p>
-          I work in GTM and revenue operations — the layer between the go-to-market team and
-          the systems they depend on.
+          I work in GTM and revenue operations — the layer between the go-to-market team and the
+          systems they depend on.
         </p>
         <p>
           Most of what I do starts as a question someone can't answer from a dashboard: why
-          pipeline moved the way it did, where deals stall, which motion is actually working.
+          pipeline moved the way it did, where deals stall, which accounts belong to whom.
           Answering it usually means fixing the data model before the report, and the process
-          before the data model.
+          before the data model. Most recently that was four years across Anaconda and
+          TrustEngine — lead routing during a platform migration, territory design, deal desk,
+          and a lot of CRM data that needed to become trustworthy before anything built on it
+          could be.
         </p>
         <p>
-          I build outside of work too — currently a Postgres-backed fantasy baseball
-          application wired to live MLB data, which is where most of my schema design and
+          I build outside of work too — Pantheon Leagues, a fantasy baseball platform with live
+          draft tooling and its own economy, which is where most of my schema design and
           API-plumbing practice happens.
         </p>
       </div>
@@ -80,19 +143,28 @@
         <div>
           <h4>Operations</h4>
           <ul>
+            <li>Lead routing &amp; territory design</li>
             <li>Pipeline &amp; forecast reporting</li>
-            <li>Territory &amp; quota design</li>
-            <li>Process &amp; funnel instrumentation</li>
-            <li>Go-to-market systems administration</li>
+            <li>CRM data quality &amp; governance</li>
+            <li>Deal desk &amp; quote process</li>
           </ul>
         </div>
         <div>
-          <h4>Technical</h4>
+          <h4>Stack</h4>
           <ul>
-            <li>SQL &amp; Postgres</li>
-            <li>Python</li>
-            <li>REST APIs &amp; integrations</li>
-            <li>Automation &amp; internal tooling</li>
+            <li>Salesforce · Clay · LeanData · Fullcast</li>
+            <li>Marketo · Salesloft · Outreach · Groove · Gong</li>
+            <li>n8n · Zapier · Apps Script</li>
+            <li>Python · SQL/SOQL · Apex</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Certification</h4>
+          <ul>
+            <!-- Verification link goes here once you send it:
+                 <li><a href="URL" target="_blank" rel="noopener">Salesforce Certified Administrator ↗</a></li> -->
+            <li>Salesforce Certified Administrator</li>
+            <li>Issued June 2023</li>
           </ul>
         </div>
       </div>
@@ -104,25 +176,27 @@
   <div class="wrap">
     <div class="section__head"><h2>Get in touch</h2></div>
     <p style="max-width:52ch;color:var(--text-dim);margin:0">
-      Open to GTM, revenue, and sales operations roles — and to conversations about
-      operations problems that look unsolvable from inside a CRM.
+      Open to GTM, revenue, and sales operations roles — and to conversations about operations
+      problems that look unsolvable from inside a CRM.
     </p>
     <div class="contact-row">
       <a href="mailto:zpressley@gmail.com">zpressley@gmail.com</a>
-      <a href="https://www.linkedin.com/in/zpressley" target="_blank" rel="noopener">LinkedIn ↗</a>
+      <a href="https://calendly.com/zpressley/30min" target="_blank" rel="noopener">Book 30 minutes ↗</a>
+      <a href="assets/files/zach-pressley-resume.pdf" target="_blank" rel="noopener">Résumé (PDF) ↗</a>
+      <a href="https://www.linkedin.com/in/zdpressley" target="_blank" rel="noopener">LinkedIn ↗</a>
       <a href="https://github.com/zpressley" target="_blank" rel="noopener">GitHub ↗</a>
+      <a href="https://zachpressley.substack.com" target="_blank" rel="noopener">Substack ↗</a>
     </div>
   </div>
 </section>
 
 <footer class="footer">
   <div class="wrap footer__inner">
-    <span>© <span id="year">2026</span> Zach Pressley</span>
+    <span>© <span id="year">2026</span> Zachary Pressley</span>
     <span>Built plain — HTML, CSS, a little JS</span>
   </div>
 </footer>
 
-<script src="assets/js/projects.js"></script>
 <script src="assets/js/main.js"></script>
 </body>
 </html>
