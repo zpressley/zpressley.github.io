@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pricing Engine — try it — Zachary Pressley</title>
+<meta name="description" content="A runnable model of the inputs → cost → price relationship: a circular price-to-cost dependency solved by iteration, and tiered volume pricing with a capped overage.">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../assets/css/style.css">
+<style>
+  .pane { border:1px solid var(--line); border-radius:var(--radius); background:var(--ink-2); padding:1.15rem 1.2rem; }
+  .pane h3 { font-family:var(--mono); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
+             color:var(--accent); margin:0 0 .9rem; }
+
+  .ctrl { margin-bottom: 1.05rem; }
+  .ctrl:last-child { margin-bottom: 0; }
+  .ctrl label { display:flex; justify-content:space-between; align-items:baseline; gap:1rem;
+                font-size:.88rem; color:var(--text-dim); margin-bottom:.35rem; }
+  .ctrl label .val { font-family:var(--mono); color:var(--text); font-variant-numeric:tabular-nums; }
+  input[type=range] { width:100%; accent-color: var(--accent); }
+
+  .checks { display:flex; flex-direction:column; gap:.5rem; }
+  .checks label { display:flex; align-items:center; gap:.55rem; font-size:.88rem; color:var(--text-dim); }
+  .checks input { accent-color: var(--accent); }
+  .checks .cost { margin-left:auto; font-family:var(--mono); font-size:.8rem; }
+
+  .split { display:grid; grid-template-columns: 340px 1fr; gap:1.2rem; margin:1.8rem 0; align-items:start; }
+  @media (max-width: 900px) { .split { grid-template-columns:1fr; } }
+
+  .ledger { width:100%; border-collapse:collapse; font-size:.9rem; min-width:0; }
+  .ledger td { padding:.4rem 0; border-bottom:1px solid var(--line); color:var(--text-dim); }
+  .ledger td:last-child { text-align:right; font-family:var(--mono); color:var(--text); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .ledger tr.sum td { border-top:1px solid var(--line); border-bottom:none; padding-top:.6rem; color:var(--text); font-weight:600; }
+  .ledger tr.circ td { color:var(--accent); }
+  .ledger tr.circ td:last-child { color:var(--accent); }
+
+  .headline { display:flex; flex-wrap:wrap; gap:1.6rem; margin:.2rem 0 0; }
+  .stat { min-width:130px; }
+  .stat .k { font-family:var(--mono); font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:var(--text-dim); margin-bottom:.25rem; }
+  .stat .v { font-size:1.5rem; font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+  .stat .v.accent { color: var(--accent); }
+
+  .iter { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:.8rem; font-variant-numeric:tabular-nums; }
+  .iter th { text-align:right; font-size:.64rem; letter-spacing:.12em; text-transform:uppercase; color:var(--accent);
+             padding:.5rem .7rem; background:var(--ink-3); font-weight:600; white-space:nowrap; }
+  .iter th:first-child, .iter td:first-child { text-align:left; }
+  .iter td { text-align:right; padding:.38rem .7rem; border-top:1px solid var(--line); color:var(--text-dim); white-space:nowrap; }
+  .iter tr.settled td { color:var(--accent); }
+  .iter tr.settled td:first-child::after { content:" ✓"; }
+
+  .warn { border-left-color:#e79a9a; }
+  .warn h4 { color:#e79a9a; }
+
+  figure.chart { margin:1.4rem 0 0; }
+  figure.chart svg { width:100%; height:auto; display:block; }
+  figcaption { font-family:var(--mono); font-size:.72rem; color:var(--text-dim); margin-top:.7rem; letter-spacing:.03em; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a class="nav__mark" href="../index.html">Zach Pressley<span>.</span></a>
+    <div class="nav__links">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#about">About</a>
+      <a href="../assets/files/zach-pressley-resume.pdf" target="_blank" rel="noopener">Resume</a>
+      <a href="../index.html#contact">Contact</a>
+      <button class="theme-toggle" type="button" aria-label="Switch theme">☀</button>
+    </div>
+  </div>
+</nav>
+
+<main class="case">
+  <div class="wrap">
+    <a class="back" href="../projects/pricing-roi-pipeline.html">← Back to the case study</a>
+
+    <h1>Pricing engine — try it</h1>
+    <p class="case__lede">
+      Move the inputs and watch cost and price resolve against each other. One cost line is a
+      percentage of the final price, so there's no single-pass answer — the engine has to
+      iterate until it settles.
+    </p>
+
+    <div class="callout">
+      <h4>Illustrative numbers</h4>
+      <p>
+        The cost lines, tiers, and rates below are made up. What's faithful is the
+        <em>mechanism</em>: the circular dependency, the iteration that resolves it, and the
+        overage cap. Real pricing belongs to the company it was built for.
+      </p>
+    </div>
+
+    <div class="split">
+      <div class="pane">
+        <h3>Inputs</h3>
+
+        <div class="ctrl">
+          <label for="records">Records per month <span class="val" id="records-v"></span></label>
+          <input type="range" id="records" min="10000" max="1200000" step="10000" value="200000">
+        </div>
+
+        <div class="ctrl">
+          <label for="seats">Licensed users <span class="val" id="seats-v"></span></label>
+          <input type="range" id="seats" min="1" max="500" step="1" value="30">
+        </div>
+
+        <div class="ctrl">
+          <label for="margin">Target gross margin <span class="val" id="margin-v"></span></label>
+          <input type="range" id="margin" min="50" max="90" step="1" value="80">
+        </div>
+
+        <div class="ctrl">
+          <label for="revshare">Partner share <span class="val" id="revshare-v"></span></label>
+          <input type="range" id="revshare" min="0" max="25" step="1" value="6">
+        </div>
+
+        <div class="ctrl">
+          <h3 style="margin-top:1.3rem">Add-ons</h3>
+          <div class="checks" id="addons"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="pane">
+          <h3>Cost, at the converged price</h3>
+          <table class="ledger" id="ledger"></table>
+          <div class="headline" style="margin-top:1.3rem">
+            <div class="stat"><div class="k">Total cost</div><div class="v" id="out-cost">—</div></div>
+            <div class="stat"><div class="k">Price</div><div class="v accent" id="out-price">—</div></div>
+            <div class="stat"><div class="k">Achieved margin</div><div class="v" id="out-margin">—</div></div>
+            <div class="stat"><div class="k">Rounds to settle</div><div class="v" id="out-rounds">—</div></div>
+          </div>
+          <p class="embed-note" id="out-check" style="margin-top:1rem"></p>
+        </div>
+
+        <div class="callout warn" id="diverge" hidden>
+          <h4>No price exists here</h4>
+          <p id="diverge-text"></p>
+        </div>
+      </div>
+    </div>
+
+    <h2 style="font-size:1.35rem;margin:2.6rem 0 .3rem">Watch it settle</h2>
+    <p style="color:var(--text-dim);max-width:64ch;margin:0 0 1.2rem">
+      Each round computes cost from the previous round's price, then a new price from that cost.
+      The correction shrinks every round because the circular line is only a fraction of the total.
+    </p>
+
+    <div class="table-wrap">
+      <table class="iter">
+        <thead>
+          <tr><th>Round</th><th>Price in</th><th>Cost</th><th>Price out</th><th>Change</th></tr>
+        </thead>
+        <tbody id="iterations"></tbody>
+      </table>
+    </div>
+
+    <h2 style="font-size:1.35rem;margin:2.6rem 0 .3rem">Tiers, and why the overage is capped</h2>
+    <p style="color:var(--text-dim);max-width:64ch;margin:0 0 .4rem">
+      Volume above a tier's ceiling bills at an overage rate — but capped, at every step, against
+      the next tier's flat price. Without the cap, sitting just above a boundary could cost more
+      than moving up a tier, which is the kind of thing a customer notices on an invoice.
+    </p>
+
+    <figure class="chart">
+      <svg id="tier-chart" viewBox="0 0 900 320" role="img"
+           aria-label="Price against volume: flat tier prices, overage rising between tiers, capped at the next tier's flat price."></svg>
+      <figcaption id="tier-caption"></figcaption>
+    </figure>
+
+    <div class="prose">
+      <h2>The part worth explaining</h2>
+      <p>
+        Price is a function of cost — <code>price = cost / (1 − margin)</code>. But one cost line
+        is a percentage of the final price, so cost is also a function of price. Neither resolves
+        without the other already being known.
+      </p>
+      <p>
+        Google Sheets has an iterative-calculation setting for exactly this, and the original
+        build deliberately didn't use it: it's a file-level toggle, and it fails silently if a
+        collaborator's copy has it switched off. A pricing model that quietly returns wrong
+        numbers depending on someone else's settings is worse than one that doesn't run. So the
+        loop was unrolled by hand into about twenty sequential blocks — compute cost from the
+        prior price, compute price from that cost, repeat — which converges in a handful of
+        rounds and depends on nothing outside the formulas themselves.
+      </p>
+      <p>
+        There is a closed form. Substituting and solving gives
+        <code>price = fixed cost / (1 − margin − partner share)</code>, and this page computes it
+        alongside the iteration to confirm they agree. That algebra is obvious on a page and
+        genuinely awkward to express across spreadsheet cells that each hold one step of a
+        business calculation people need to read and audit. The iteration was the right call in
+        the sheet; the closed form is what you'd write in code.
+      </p>
+      <p>
+        The closed form also exposes something the twenty unrolled blocks hide: if the partner
+        share is greater than <code>1 − margin</code>, the denominator goes negative and no price
+        satisfies the target at all. Push the partner share above your margin headroom on the
+        sliders and the model says so instead of quietly producing a number.
+      </p>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <span>© <span id="year">2026</span> Zachary Pressley</span>
+    <a href="../projects/pricing-roi-pipeline.html">← Case study</a>
+  </div>
+</footer>
+
+<script src="../assets/js/main.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  // ---- Illustrative model. Not anyone's real pricing. ----
+  var MODEL = {
+    baseCost: 1200,
+    perRecord: 0.012,
+    perSeat: 18,
+    addons: [
+      { id: "crm",   label: "CRM connector",     cost: 450 },
+      { id: "feed",  label: "Pricing feed",      cost: 900 },
+      { id: "sso",   label: "SSO + audit log",   cost: 250 }
+    ],
+    tiers: [
+      { upTo: 50000,   price: 3000 },
+      { upTo: 150000,  price: 6500 },
+      { upTo: 400000,  price: 12000 },
+      { upTo: 1000000, price: 22000 }
+    ],
+    overagePerRecord: 0.06
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var money = function (n) {
+    return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  };
+  var money2 = function (n) {
+    return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+  var num = function (n) { return n.toLocaleString("en-US"); };
+
+  // build add-on checkboxes
+  $("addons").innerHTML = MODEL.addons.map(function (a) {
+    return '<label><input type="checkbox" data-addon="' + a.id + '"' +
+           (a.id === "crm" ? " checked" : "") + '>' + a.label +
+           '<span class="cost">' + money(a.cost) + "</span></label>";
+  }).join("");
+
+  function readInputs() {
+    var addons = MODEL.addons.filter(function (a) {
+      var el = document.querySelector('[data-addon="' + a.id + '"]');
+      return el && el.checked;
+    });
+    return {
+      records: +$("records").value,
+      seats: +$("seats").value,
+      margin: +$("margin").value / 100,
+      revshare: +$("revshare").value / 100,
+      addons: addons
+    };
+  }
+
+  // ---- the engine ----
+  function solve(inp) {
+    var addonCost = inp.addons.reduce(function (s, a) { return s + a.cost; }, 0);
+    var fixed = MODEL.baseCost + MODEL.perRecord * inp.records + MODEL.perSeat * inp.seats + addonCost;
+    var headroom = 1 - inp.margin - inp.revshare;
+
+    // closed form, for comparison
+    var exact = headroom > 0 ? fixed / headroom : Infinity;
+
+    // the unrolled iteration: cost from prior price, price from that cost
+    var rounds = [];
+    var price = fixed / (1 - inp.margin);   // first pass ignores the circular line
+    var settledAt = null;
+    for (var i = 1; i <= 20; i++) {
+      var priceIn = price;
+      var cost = fixed + inp.revshare * priceIn;
+      var priceOut = cost / (1 - inp.margin);
+      var change = priceOut - priceIn;
+      rounds.push({ n: i, priceIn: priceIn, cost: cost, priceOut: priceOut, change: change });
+      price = priceOut;
+      if (settledAt === null && Math.abs(change) < 0.01) settledAt = i;
+      if (settledAt !== null && i >= settledAt + 2) break;
+      if (!isFinite(price) || price > 1e12) break;
+    }
+
+    return {
+      fixed: fixed, addonCost: addonCost, headroom: headroom, exact: exact,
+      rounds: rounds, settledAt: settledAt, price: price,
+      cost: fixed + inp.revshare * price
+    };
+  }
+
+  // ---- tiered price with the capped overage ----
+  function tierPrice(records) {
+    var tiers = MODEL.tiers;
+    for (var i = 0; i < tiers.length; i++) {
+      if (records <= tiers[i].upTo) {
+        if (i === 0) return { price: tiers[i].price, tier: i, capped: false };
+        var prev = tiers[i - 1];
+        var over = (records - prev.upTo) * MODEL.overagePerRecord;
+        var uncapped = prev.price + over;
+        var capped = Math.min(uncapped, tiers[i].price);
+        return { price: capped, tier: i - 1, capped: uncapped > tiers[i].price, uncapped: uncapped };
+      }
+    }
+    var last = tiers[tiers.length - 1];
+    var o = (records - last.upTo) * MODEL.overagePerRecord;
+    return { price: last.price + o, tier: tiers.length - 1, capped: false, uncapped: last.price + o };
+  }
+
+  // ---- chart ----
+  function drawChart(records) {
+    var W = 900, H = 320, L = 62, R = 18, T = 18, B = 46;
+    var maxX = 1200000;
+    var maxY = 36000;
+    var x = function (v) { return L + (v / maxX) * (W - L - R); };
+    var y = function (v) { return T + (1 - v / maxY) * (H - T - B); };
+
+    // null marks a break in the line, so a series that leaves the chart stops
+    // rather than flattening along the ceiling and reading as a cap it isn't.
+    var capped = [], uncapped = [];
+    for (var v = 0; v <= maxX; v += 5000) {
+      var r = tierPrice(Math.max(v, 1));
+      var u = r.uncapped != null ? r.uncapped : r.price;
+      capped.push(r.price > maxY ? null : [x(v), y(r.price)]);
+      uncapped.push(u > maxY ? null : [x(v), y(u)]);
+    }
+    var path = function (pts) {
+      var d = "", pen = false;
+      pts.forEach(function (pt) {
+        if (!pt) { pen = false; return; }
+        d += (pen ? "L" : "M") + pt[0].toFixed(1) + " " + pt[1].toFixed(1) + " ";
+        pen = true;
+      });
+      return d.trim();
+    };
+
+    var grid = "";
+    [0, 9000, 18000, 27000, 36000].forEach(function (v) {
+      grid += '<line x1="' + L + '" y1="' + y(v) + '" x2="' + (W - R) + '" y2="' + y(v) +
+              '" stroke="var(--line)" stroke-width="1"/>' +
+              '<text x="' + (L - 10) + '" y="' + (y(v) + 4) + '" text-anchor="end" fill="var(--text-dim)" ' +
+              'font-family="ui-monospace,monospace" font-size="11">' + (v ? "$" + (v / 1000) + "k" : "0") + "</text>";
+    });
+
+    var ticks = "";
+    [0, 300000, 600000, 900000, 1200000].forEach(function (v) {
+      ticks += '<text x="' + x(v) + '" y="' + (H - B + 22) + '" text-anchor="middle" fill="var(--text-dim)" ' +
+               'font-family="ui-monospace,monospace" font-size="11">' + (v ? v / 1000 + "k" : "0") + "</text>";
+    });
+
+    var bounds = "";
+    MODEL.tiers.forEach(function (t) {
+      bounds += '<line x1="' + x(t.upTo) + '" y1="' + T + '" x2="' + x(t.upTo) + '" y2="' + (H - B) +
+                '" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 5"/>';
+    });
+
+    var here = tierPrice(records);
+    var marker = '<line x1="' + x(records) + '" y1="' + T + '" x2="' + x(records) + '" y2="' + (H - B) +
+                 '" stroke="var(--accent)" stroke-width="1" opacity=".45"/>' +
+                 '<circle cx="' + x(records) + '" cy="' + y(Math.min(here.price, maxY)) +
+                 '" r="5" fill="var(--accent)"/>';
+
+    $("tier-chart").innerHTML =
+      grid + bounds + ticks +
+      '<path d="' + path(uncapped) + '" fill="none" stroke="#e79a9a" stroke-width="1.4" stroke-dasharray="5 4" opacity=".75"/>' +
+      '<path d="' + path(capped) + '" fill="none" stroke="var(--accent)" stroke-width="2.4"/>' +
+      marker +
+      '<text x="' + (W - R) + '" y="' + (H - 6) + '" text-anchor="end" fill="var(--text-dim)" ' +
+      'font-family="ui-monospace,monospace" font-size="11">records per month →</text>';
+
+    $("tier-caption").textContent = here.capped
+      ? "At " + num(records) + " records the raw overage would be " + money(here.uncapped) +
+        " — capped to " + money(here.price) + ", the next tier's flat price."
+      : "At " + num(records) + " records: " + money(here.price) + ". Dashed line is what overage would charge uncapped.";
+  }
+
+  // ---- render ----
+  function render() {
+    var inp = readInputs();
+    $("records-v").textContent = num(inp.records);
+    $("seats-v").textContent = num(inp.seats);
+    $("margin-v").textContent = (inp.margin * 100).toFixed(0) + "%";
+    $("revshare-v").textContent = (inp.revshare * 100).toFixed(0) + "% of price";
+
+    var r = solve(inp);
+    var diverges = r.headroom <= 0;
+
+    $("diverge").hidden = !diverges;
+    if (diverges) {
+      $("diverge-text").textContent =
+        "A partner share of " + (inp.revshare * 100).toFixed(0) +
+        "% leaves no room inside a " + (inp.margin * 100).toFixed(0) +
+        "% margin — every round raises the price, which raises the partner cost, which raises the " +
+        "price again. The iteration runs away instead of settling.";
+    }
+
+    var rows = [
+      ["Platform base", MODEL.baseCost],
+      ["Records · " + num(inp.records) + " × $" + MODEL.perRecord.toFixed(3), MODEL.perRecord * inp.records],
+      ["Seats · " + num(inp.seats) + " × " + money(MODEL.perSeat), MODEL.perSeat * inp.seats]
+    ];
+    inp.addons.forEach(function (a) { rows.push([a.label, a.cost]); });
+
+    var html = rows.map(function (row) {
+      return "<tr><td>" + row[0] + "</td><td>" + money(row[1]) + "</td></tr>";
+    }).join("");
+    html += '<tr class="circ"><td>Partner share · ' + (inp.revshare * 100).toFixed(0) +
+            "% of the final price</td><td>" +
+            (diverges ? "—" : money(inp.revshare * r.price)) + "</td></tr>";
+    html += '<tr class="sum"><td>Total cost</td><td>' + (diverges ? "—" : money(r.cost)) + "</td></tr>";
+    $("ledger").innerHTML = html;
+
+    $("out-cost").textContent = diverges ? "—" : money(r.cost);
+    $("out-price").textContent = diverges ? "—" : money(r.price);
+    $("out-margin").textContent = diverges ? "—" : (((r.price - r.cost) / r.price) * 100).toFixed(1) + "%";
+    $("out-rounds").textContent = r.settledAt || "—";
+
+    if (diverges) {
+      $("out-check").textContent = "";
+    } else {
+      var gap = Math.abs(r.price - r.exact);
+      $("out-check").textContent =
+        "Closed form — fixed cost / (1 − margin − partner share) — gives " + money2(r.exact) +
+        ". The iteration lands within " + (gap < 0.005 ? "a cent" : money2(gap)) + " of it.";
+    }
+
+    $("iterations").innerHTML = r.rounds.map(function (d) {
+      var settled = r.settledAt !== null && d.n >= r.settledAt;
+      return '<tr class="' + (settled ? "settled" : "") + '"><td>' + d.n + "</td><td>" +
+             money2(d.priceIn) + "</td><td>" + money2(d.cost) + "</td><td>" +
+             money2(d.priceOut) + "</td><td>" +
+             (Math.abs(d.change) < 0.005 ? "—" : (d.change > 0 ? "+" : "") + money2(d.change)) +
+             "</td></tr>";
+    }).join("");
+
+    drawChart(inp.records);
+  }
+
+  ["records", "seats", "margin", "revshare"].forEach(function (id) {
+    $(id).addEventListener("input", render);
+  });
+  $("addons").addEventListener("change", render);
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pricing-to-ROI Pipeline — Zachary Pressley</title>
+<meta name="description" content="A pricing engine that solved a circular price-to-cost dependency without iterative calculation, plus a client-facing ROI calculator and an auto-populated deliverable. Built in Google Sheets at TrustEngine.">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../assets/css/style.css">
+<style>
+  .pipeline { margin: 2rem 0 2.4rem; }
+  .pipeline svg { width: 100%; height: auto; display: block; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a class="nav__mark" href="../index.html">Zach Pressley<span>.</span></a>
+    <div class="nav__links">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#about">About</a>
+      <a href="../assets/files/zach-pressley-resume.pdf" target="_blank" rel="noopener">Resume</a>
+      <a href="../index.html#contact">Contact</a>
+      <button class="theme-toggle" type="button" aria-label="Switch theme">☀</button>
+    </div>
+  </div>
+</nav>
+
+<main class="case">
+  <div class="wrap">
+    <a class="back" href="../index.html#work">← All work</a>
+
+    <h1>Pricing-to-ROI Pipeline</h1>
+    <p class="case__lede">
+      Pricing had a circular problem nobody had solved cleanly: the price of a deal depended on
+      its cost, and one of the cost lines was defined as a percentage of the final price. Before
+      this, the CFO priced every deal by hand — guess a price, check the margin, adjust, repeat.
+    </p>
+
+    <dl class="facts">
+      <div class="fact"><dt>Role</dt><dd>Design &amp; build</dd></div>
+      <div class="fact"><dt>Where</dt><dd>TrustEngine · Revenue Operations</dd></div>
+      <div class="fact"><dt>Built in</dt><dd>Google Sheets, merge-coded doc template</dd></div>
+      <div class="fact"><dt>Replaced</dt><dd>Pricing every deal by hand</dd></div>
+    </dl>
+
+    <div class="doclinks">
+      <a class="btn btn--primary" href="../demo/pricing-engine.html">Try the pricing engine →</a>
+    </div>
+
+    <div class="pipeline">
+      <svg viewBox="0 0 960 150" role="img"
+           aria-label="Four stages: client inputs feed the pricing engine, which feeds the ROI calculator, which produces the client deliverable.">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0 0 L10 5 L0 10 z" fill="var(--text-dim)"/>
+          </marker>
+        </defs>
+        <g font-family="ui-monospace, monospace">
+          <!-- 4 stages -->
+          <g>
+            <rect x="2" y="20" width="212" height="112" rx="10" fill="var(--ink-2)" stroke="var(--line)"/>
+            <circle cx="28" cy="46" r="13" fill="var(--accent)"/>
+            <text x="28" y="50" text-anchor="middle" font-size="11" fill="#04100f" font-weight="700">01</text>
+            <text x="50" y="51" font-size="14" font-weight="700" fill="var(--text)" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Inter, Roboto, Helvetica, Arial, sans-serif">Client inputs</text>
+            <text x="22" y="78" font-size="11.5" fill="var(--text-dim)">Their volume, conversion</text>
+            <text x="22" y="96" font-size="11.5" fill="var(--text-dim)">rate, and deal size</text>
+          </g>
+          <line x1="220" y1="76" x2="240" y2="76" stroke="var(--text-dim)" stroke-width="1.2" marker-end="url(#ar)"/>
+          <g>
+            <rect x="250" y="20" width="212" height="112" rx="10" fill="var(--ink-2)" stroke="var(--accent)"/>
+            <circle cx="276" cy="46" r="13" fill="var(--accent)"/>
+            <text x="276" y="50" text-anchor="middle" font-size="11" fill="#04100f" font-weight="700">02</text>
+            <text x="298" y="51" font-size="14" font-weight="700" fill="var(--text)" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Inter, Roboto, Helvetica, Arial, sans-serif">Pricing engine</text>
+            <text x="270" y="78" font-size="11.5" fill="var(--text-dim)">Solves price and cost</text>
+            <text x="270" y="96" font-size="11.5" fill="var(--text-dim)">together, since each</text>
+            <text x="270" y="114" font-size="11.5" fill="var(--text-dim)">depends on the other</text>
+          </g>
+          <line x1="468" y1="76" x2="488" y2="76" stroke="var(--text-dim)" stroke-width="1.2" marker-end="url(#ar)"/>
+          <g>
+            <rect x="498" y="20" width="212" height="112" rx="10" fill="var(--ink-2)" stroke="var(--line)"/>
+            <circle cx="524" cy="46" r="13" fill="var(--accent)"/>
+            <text x="524" y="50" text-anchor="middle" font-size="11" fill="#04100f" font-weight="700">03</text>
+            <text x="546" y="51" font-size="14" font-weight="700" fill="var(--text)" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Inter, Roboto, Helvetica, Arial, sans-serif">ROI calculator</text>
+            <text x="518" y="78" font-size="11.5" fill="var(--text-dim)">Legacy platform vs.</text>
+            <text x="518" y="96" font-size="11.5" fill="var(--text-dim)">new, side by side</text>
+          </g>
+          <line x1="716" y1="76" x2="736" y2="76" stroke="var(--text-dim)" stroke-width="1.2" marker-end="url(#ar)"/>
+          <g>
+            <rect x="746" y="20" width="212" height="112" rx="10" fill="var(--ink-2)" stroke="var(--line)"/>
+            <circle cx="772" cy="46" r="13" fill="var(--accent)"/>
+            <text x="772" y="50" text-anchor="middle" font-size="11" fill="#04100f" font-weight="700">04</text>
+            <text x="794" y="51" font-size="14" font-weight="700" fill="var(--text)" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Inter, Roboto, Helvetica, Arial, sans-serif">Deliverable</text>
+            <text x="766" y="78" font-size="11.5" fill="var(--text-dim)">Formatted one-pager,</text>
+            <text x="766" y="96" font-size="11.5" fill="var(--text-dim)">merge-coded from</text>
+            <text x="766" y="114" font-size="11.5" fill="var(--text-dim)">the calculation</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <div class="prose">
+      <h2>A price that depends on a cost that depends on the price</h2>
+      <p>
+        Price comes from cost and a target margin: <code>price = cost / (1 − margin)</code>. But
+        one cost line was itself a percentage of the final price, and another scaled with
+        projected usage that also moved with price. That's a fixed-point problem — neither side
+        resolves until the other is already known — and there's no single-pass formula for it.
+      </p>
+
+      <h2>Why not just turn on iterative calculation</h2>
+      <p>
+        Google Sheets has a setting for exactly this. I didn't use it, for one reason: it's a
+        file-level toggle. If a collaborator works in a copy where it's switched off, the model
+        doesn't error — it silently returns the wrong number. A pricing tool whose correctness
+        depends on a checkbox in somebody else's settings menu is worse than one that doesn't
+        run at all, because you can't tell by looking.
+      </p>
+      <p>
+        So the loop was unrolled by hand into roughly twenty sequential blocks: compute cost from
+        the prior price, compute price from that cost, repeat. Each round nudges the estimate
+        closer, and because the circular line is a small fraction of the total, the correction
+        shrinks every round. It converges within a handful of iterations — the rest of the chain
+        is margin for safety, not because anything is still moving. An input goes in, a converged
+        price comes out, deterministically, depending on nothing but the formulas themselves.
+      </p>
+      <p>
+        <a href="../demo/pricing-engine.html">The demo</a> runs that model live: move the inputs
+        and watch the rounds settle, or push the percentage cost past your margin headroom and
+        watch the whole thing stop having an answer.
+      </p>
+
+      <h2>Tiered volume pricing, capped at every boundary</h2>
+      <p>
+        A separate part of the engine handled volume tiers: cost stepped down as volume rose,
+        with an overage rate applied above each tier's ceiling. The overage is capped with
+        <code>MIN()</code> against the next tier's flat price at every step, so usage just past a
+        boundary can never cost more via overage than simply being moved up a tier would.
+      </p>
+      <p>
+        Without that cap you get an invoice where buying more costs less than buying slightly
+        less — the kind of thing a customer finds once and never forgets. Nine or ten tiers deep,
+        with nested conditionals doing tier lookup on top of the cap.
+      </p>
+
+      <h2>The client-facing side</h2>
+      <p>
+        On top of the engine sat a calculator a rep could run with a prospect's own numbers —
+        loan volume, conversion rate, average deal size. It computed monthly volume, monthly
+        revenue, and total cost under both the legacy platform and the new one, then derived an
+        ROI multiple from the delta.
+      </p>
+      <p>
+        Inputs were colour-separated by source: one colour for model assumptions the company set,
+        another for the client's own figures. A rep could see at a glance which numbers were
+        theirs to change and which weren't — which matters when you're sitting across from
+        someone asking where a number came from.
+      </p>
+
+      <h2>And then it wrote itself up</h2>
+      <p>
+        The output document was merge-coded against the calculator's output row, so a finished
+        calculation became a formatted client-ready one-pager without anyone copying figures
+        between files. Every hand-copied number is a chance to paste the wrong one into a
+        document with a customer's name on it.
+      </p>
+
+      <h2>What I'd keep and what I'd change</h2>
+      <p>
+        The unrolled iteration was the right call in a spreadsheet, and I'd make it again there.
+        In code it's unnecessary — substituting the circular term and solving gives a closed form
+        that lands on the same number in one step, and the demo computes both to show they agree.
+        The algebra is trivial on paper and genuinely awkward across spreadsheet cells that each
+        have to hold one readable, auditable step of a business calculation.
+      </p>
+      <p>
+        The closed form does surface one thing twenty unrolled blocks hide: when the percentage
+        cost exceeds the margin headroom, there is no price that satisfies the target — not a
+        large price, none. The iteration just runs away, and a chain of blocks doesn't announce
+        that. It's the kind of edge case worth making loud rather than letting someone discover
+        it in front of a customer.
+      </p>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <span>© <span id="year">2026</span> Zachary Pressley</span>
+    <a href="../index.html#work">← All work</a>
+  </div>
+</footer>
+
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

@@ -26,9 +26,16 @@ projects/
   _template.html        copy this for each new case study
   clay-enrichment-waterfall.html
   signal-engine.html
+  sfdc-account-matcher.html
+  pricing-roi-pipeline.html
   pantheon-leagues.html
 decks/
   signal-not-noise.html self-contained slide deck, served as its own page
+demo/
+  account-matcher.html  runnable in-browser sample of the matcher
+  pricing-engine.html   runnable cost → price model with the tier chart
+src/
+  sfdc-account-matcher/ project source, linked from the case study
 assets/
   css/style.css         all styling; colors are CSS variables at the top
   js/main.js            theme toggle + project filtering (reads the cards in the DOM)

@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Account Matcher — Try it — Zachary Pressley</title>
+<meta name="description" content="A runnable sample of the SFDC Account Matcher: paste company names, get ranked candidate matches against a sample Salesforce account list with confidence bands.">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../assets/css/style.css">
+<style>
+  .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin: 1.8rem 0 1.2rem; }
+  @media (max-width: 800px) { .demo-grid { grid-template-columns: 1fr; } }
+
+  .pane { border: 1px solid var(--line); border-radius: var(--radius); background: var(--ink-2); padding: 1.1rem 1.15rem; }
+  .pane h3 {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 .3rem;
+  }
+  .pane .hint { font-size: .82rem; color: var(--text-dim); margin: 0 0 .7rem; }
+
+  textarea {
+    width: 100%; min-height: 200px; resize: vertical;
+    background: var(--ink); color: var(--text);
+    border: 1px solid var(--line); border-radius: 8px; padding: .7rem .8rem;
+    font-family: var(--mono); font-size: .84rem; line-height: 1.65;
+  }
+  textarea:focus { outline: none; border-color: var(--accent); }
+
+  .run-row { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; margin-bottom: 1.6rem; }
+  .run-row .status { font-family: var(--mono); font-size: .78rem; color: var(--text-dim); }
+
+  .band {
+    font-family: var(--mono); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase;
+    padding: .16rem .45rem; border-radius: 4px; border: 1px solid var(--line); white-space: nowrap;
+  }
+  .band--high   { color: #7ee0b8; border-color: #2c6b55; background: rgba(46,160,120,.14); }
+  .band--medium { color: #e8c37a; border-color: #6d5624; background: rgba(200,150,50,.14); }
+  .band--review { color: #e79a9a; border-color: #6d3434; background: rgba(190,80,80,.14); }
+
+  .score { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .cand { color: var(--text); }
+  .cand + .cand { margin-top: .3rem; }
+  .cand--alt { color: var(--text-dim); font-size: .88em; }
+  .in-name { font-weight: 600; color: var(--text); }
+  tbody tr.miss td { background: rgba(190,80,80,.05); }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a class="nav__mark" href="../index.html">Zach Pressley<span>.</span></a>
+    <div class="nav__links">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#about">About</a>
+      <a href="../assets/files/zach-pressley-resume.pdf" target="_blank" rel="noopener">Resume</a>
+      <a href="../index.html#contact">Contact</a>
+      <button class="theme-toggle" type="button" aria-label="Switch theme">☀</button>
+    </div>
+  </div>
+</nav>
+
+<main class="case">
+  <div class="wrap">
+    <a class="back" href="../projects/sfdc-account-matcher.html">← Back to the case study</a>
+
+    <h1>Account Matcher — try it</h1>
+    <p class="case__lede">
+      Paste a list of company names on the left. Each one gets scored against the sample
+      Salesforce account list on the right, and comes back with its top three candidates and a
+      confidence band.
+    </p>
+
+    <div class="callout">
+      <h4>What this sample is and isn't</h4>
+      <p>
+        The real tool runs two engines: fuzzy string matching, and a local sentence embedding
+        model that picks up what the string match misses. Only the first can run in a browser —
+        a language model won't fit in a static page. So this sample is the string half.
+      </p>
+      <p>
+        That turns out to be the useful thing to show. Watch what the string matcher does with
+        <strong>BNSF Railway</strong>, which belongs to Berkshire Hathaway. It has no idea, and
+        it says so by scoring low. Cases like that are exactly why the second engine exists.
+      </p>
+    </div>
+
+    <div class="demo-grid">
+      <div class="pane">
+        <h3>Incoming list</h3>
+        <p class="hint">One company per line. Optionally add a domain after a comma.</p>
+        <textarea id="input-list" spellcheck="false"></textarea>
+      </div>
+      <div class="pane">
+        <h3>Salesforce accounts (sample export)</h3>
+        <p class="hint">Stands in for a periodic CSV export. Edit it if you want.</p>
+        <textarea id="account-list" spellcheck="false"></textarea>
+      </div>
+    </div>
+
+    <div class="run-row">
+      <button class="btn btn--primary" type="button" id="run">Run the match →</button>
+      <button class="btn" type="button" id="reset">Reset lists</button>
+      <span class="status" id="status"></span>
+    </div>
+
+    <div class="table-wrap" id="results-wrap" hidden>
+      <table>
+        <thead>
+          <tr>
+            <th>Incoming</th>
+            <th>Top candidates</th>
+            <th>Confidence</th>
+            <th>Band</th>
+          </tr>
+        </thead>
+        <tbody id="results"></tbody>
+      </table>
+    </div>
+
+    <div class="prose">
+      <h2>How the scoring works</h2>
+      <p>
+        Names are normalized first — lowercased, punctuation stripped, and legal suffixes like
+        <code>Inc</code>, <code>Corp</code>, <code>LLC</code>, and <code>Holdings</code> removed,
+        so <code>Acme, Inc.</code> and <code>Acme Inc</code> stop being different strings. Then
+        two similarity measures run and the higher one wins: an edit-distance ratio over
+        alphabetically sorted tokens, which handles reordering and small typos, and a token
+        overlap ratio, which handles one name being a subset of another.
+      </p>
+      <p>
+        If a domain is supplied it's scored separately and blended in, weighted at a quarter of
+        the total — a matching domain is strong evidence, but not on its own conclusive when the
+        names disagree. Results band at 90 and 75: safe to use, worth a spot check, send to a
+        human.
+      </p>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <span>© <span id="year">2026</span> Zachary Pressley</span>
+    <a href="../projects/sfdc-account-matcher.html">← Case study</a>
+  </div>
+</footer>
+
+<script src="../assets/js/main.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var SAMPLE_INPUT = [
+    "NTT DATA",
+    "Acme, Inc.",
+    "Intl Business Machines",
+    "BNSF Railway",
+    "Berkshire Hathaway Inc",
+    "Salesforce.com",
+    "Proctor and Gamble",
+    "GEICO",
+    "Delta Air Lines Inc.",
+    "Kraft Heinz Co",
+    "JP Morgan Chase & Co, jpmorganchase.com",
+    "Zeta Manufacturing Group"
+  ].join("\n");
+
+  var SAMPLE_ACCOUNTS = [
+    "NTT Data Corporation, nttdata.com",
+    "Acme Inc, acme.com",
+    "International Business Machines Corporation, ibm.com",
+    "Berkshire Hathaway, berkshirehathaway.com",
+    "Salesforce, Inc., salesforce.com",
+    "The Procter & Gamble Company, pg.com",
+    "Delta Air Lines, delta.com",
+    "The Kraft Heinz Company, kraftheinzcompany.com",
+    "JPMorgan Chase & Co., jpmorganchase.com",
+    "Zeta Manufacturing Holdings LLC, zetamfg.com",
+    "Alphabet Inc., abc.xyz",
+    "Microsoft Corporation, microsoft.com",
+    "Oracle Corporation, oracle.com",
+    "Snowflake Inc., snowflake.com",
+    "Databricks, databricks.com",
+    "Amazon Web Services, aws.amazon.com",
+    "Cisco Systems Inc, cisco.com",
+    "Accenture plc, accenture.com",
+    "Deloitte Touche Tohmatsu, deloitte.com",
+    "Union Pacific Railroad, up.com"
+  ].join("\n");
+
+  var SUFFIXES = ["inc","incorporated","corp","corporation","co","company","llc","llp","ltd",
+                  "limited","plc","sa","nv","ag","gmbh","holdings","holding","group","the"];
+
+  function normalize(s) {
+    var t = s.toLowerCase()
+             .replace(/&/g, " and ")
+             .replace(/[^a-z0-9\s]/g, " ")
+             .replace(/\s+/g, " ")
+             .trim();
+    var toks = t.split(" ").filter(function (w) {
+      return w && SUFFIXES.indexOf(w) === -1;
+    });
+    return toks.length ? toks : t.split(" ").filter(Boolean);
+  }
+
+  function levenshtein(a, b) {
+    if (a === b) return 0;
+    if (!a.length) return b.length;
+    if (!b.length) return a.length;
+    var prev = new Array(b.length + 1), cur = new Array(b.length + 1), i, j;
+    for (j = 0; j <= b.length; j++) prev[j] = j;
+    for (i = 1; i <= a.length; i++) {
+      cur[0] = i;
+      for (j = 1; j <= b.length; j++) {
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1,
+                          prev[j - 1] + (a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1));
+      }
+      for (j = 0; j <= b.length; j++) prev[j] = cur[j];
+    }
+    return prev[b.length];
+  }
+
+  function ratio(a, b) {
+    if (!a.length && !b.length) return 100;
+    var d = levenshtein(a, b);
+    return Math.round((1 - d / Math.max(a.length, b.length)) * 100);
+  }
+
+  function tokenSortRatio(ta, tb) {
+    return ratio(ta.slice().sort().join(" "), tb.slice().sort().join(" "));
+  }
+
+  function tokenSetRatio(ta, tb) {
+    var setA = {}, shared = 0;
+    ta.forEach(function (t) { setA[t] = true; });
+    tb.forEach(function (t) { if (setA[t]) shared++; });
+    var denom = Math.min(ta.length, tb.length);
+    return denom ? Math.round((shared / denom) * 100) : 0;
+  }
+
+  function nameScore(a, b) {
+    var ta = normalize(a), tb = normalize(b);
+    return Math.max(tokenSortRatio(ta, tb), tokenSetRatio(ta, tb));
+  }
+
+  function parseLine(line) {
+    var parts = line.split(",");
+    var domain = "";
+    // treat a trailing part that looks like a domain as the domain
+    if (parts.length > 1 && /^[\s]*[a-z0-9.-]+\.[a-z]{2,}[\s]*$/i.test(parts[parts.length - 1])) {
+      domain = parts.pop().trim().toLowerCase();
+    }
+    return { name: parts.join(",").trim(), domain: domain };
+  }
+
+  function band(score) {
+    if (score >= 90) return { cls: "band--high",   label: "High" };
+    if (score >= 75) return { cls: "band--medium", label: "Medium" };
+    return { cls: "band--review", label: "Review" };
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+
+  var inputEl = document.getElementById("input-list");
+  var acctEl = document.getElementById("account-list");
+  var body = document.getElementById("results");
+  var wrap = document.getElementById("results-wrap");
+  var status = document.getElementById("status");
+
+  function reset() {
+    inputEl.value = SAMPLE_INPUT;
+    acctEl.value = SAMPLE_ACCOUNTS;
+    wrap.hidden = true;
+    body.innerHTML = "";
+    status.textContent = "";
+  }
+
+  function run() {
+    var inputs = inputEl.value.split("\n").map(function (l) { return l.trim(); })
+                        .filter(Boolean).map(parseLine);
+    var accounts = acctEl.value.split("\n").map(function (l) { return l.trim(); })
+                          .filter(Boolean).map(parseLine);
+
+    if (!inputs.length || !accounts.length) {
+      status.textContent = "Need at least one line on each side.";
+      return;
+    }
+
+    var rows = inputs.map(function (inp) {
+      var scored = accounts.map(function (acct) {
+        var n = nameScore(inp.name, acct.name);
+        var combined = n;
+        if (inp.domain && acct.domain) {
+          var d = inp.domain === acct.domain ? 100 : ratio(inp.domain, acct.domain);
+          combined = Math.round(n * 0.75 + d * 0.25);
+        }
+        return { name: acct.name, name_score: n, score: combined };
+      }).sort(function (a, b) { return b.score - a.score; }).slice(0, 3);
+      return { input: inp, candidates: scored };
+    });
+
+    body.innerHTML = rows.map(function (r) {
+      var top = r.candidates[0];
+      var bd = band(top.score);
+      var cands = r.candidates.map(function (c, i) {
+        return '<div class="cand' + (i ? " cand--alt" : "") + '">' +
+               esc(c.name) + ' <span class="score">' + c.score + '</span></div>';
+      }).join("");
+      return '<tr class="' + (top.score < 75 ? "miss" : "") + '">' +
+             '<td><span class="in-name">' + esc(r.input.name) + "</span>" +
+             (r.input.domain ? '<div class="cand--alt">' + esc(r.input.domain) + "</div>" : "") +
+             "</td>" +
+             "<td>" + cands + "</td>" +
+             '<td class="score">' + top.score + "</td>" +
+             '<td><span class="band ' + bd.cls + '">' + bd.label + "</span></td>" +
+             "</tr>";
+    }).join("");
+
+    var flagged = rows.filter(function (r) { return r.candidates[0].score < 75; }).length;
+    status.textContent = rows.length + " scored · " + flagged + " flagged for review";
+    wrap.hidden = false;
+  }
+
+  document.getElementById("run").addEventListener("click", run);
+  document.getElementById("reset").addEventListener("click", reset);
+  reset();
+})();
+</script>
+</body>
+</html>
