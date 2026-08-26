@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Clay Enrichment Waterfall — Zach Pressley</title>
-<meta name="description" content="A tiered account enrichment and validation system built in Clay to make a Salesforce instance trustworthy enough to route and report on — spending enrichment credits by segment value rather than uniformly.">
+<title>Clay Enrichment Waterfall | Zach Pressley</title>
+<meta name="description" content="A tiered account enrichment and validation system built in Clay to make a Salesforce instance trustworthy enough to route and report on, spending enrichment credits by segment value rather than uniformly.">
 <meta name="color-scheme" content="dark light">
 <link rel="stylesheet" href="../assets/css/style.css">
 </head>
@@ -29,9 +29,9 @@
 
     <h1>Clay Enrichment Waterfall</h1>
     <p class="case__lede">
-      A tiered account enrichment and validation system built in Clay, designed to turn a CRM
-      full of half-filled records into something you can actually route and report on — and to
-      spend enrichment credits in proportion to what an account is worth.
+      A tiered account enrichment and validation system I built in Clay to turn a CRM full of
+      half-filled records into something you could actually route and report on, and to spend
+      enrichment credits in proportion to what an account was worth.
     </p>
 
     <dl class="facts">
@@ -44,14 +44,15 @@
     <div class="callout">
       <h4>Read this first</h4>
       <p>
-        This system was fully designed and built in Clay, and was scheduled to go live the week I
-        was laid off. It never ran in production. Everything below describes the intended
-        operating model and the reasoning behind it — there are no measured results, because there
-        was never a chance to measure any.
+        I designed and built this in Clay, and it was scheduled to go live the week I was laid
+        off. It never ran in production. Everything below is the intended operating model and the
+        reasoning behind it. There are no measured results, because there was never a chance to
+        measure any.
       </p>
       <p>
         I'd rather show the thinking with that caveat attached than quietly imply an outcome that
-        never happened.
+        never happened. The screenshot below is rebuilt in a personal Clay workspace to show the
+        architecture. It isn't pulled from a production instance.
       </p>
     </div>
 
@@ -73,27 +74,28 @@
       <h2>The research that came first</h2>
       <p>
         Employee count was the primary driver of segment, and segment drove AE assignment. That
-        made employee count the single most load-bearing field in the system — so before designing
-        anything, I went and found out which source could actually be trusted.
+        made it the single most load-bearing field in the system. So before I designed anything, I
+        went and found out which source could actually be trusted.
       </p>
       <ul>
-        <li>Sampled 240 accounts across four size bands — small, medium, large, very large.</li>
+        <li>Sampled 240 accounts across four size bands: small, medium, large, very large.</li>
         <li>
           Benchmarked each enrichment provider's employee count against public sources: 10-K
           filings and company websites.
         </li>
         <li>
-          Found HG Insights was the gold standard across bands and geographies. ZoomInfo, Clay's
-          native enrichment, and People Data Labs all showed variance that depended on how big the
-          company was and where it was based — reliable in some bands, not in others.
+          HG Insights turned out to be the gold standard across bands and geographies. ZoomInfo,
+          Clay's native enrichment, and People Data Labs all showed variance that depended on how
+          big the company was and where it was based. Reliable in some bands, unreliable in
+          others.
         </li>
       </ul>
       <p>
-        That left the edge cases, so I refined an employee-count validation prompt until it was
+        That left the edge cases. I refined an employee-count validation prompt until it was
         reliable enough to serve as a tie-breaker in the two situations that actually mattered:
         when CRM and enrichment disagreed sharply, and when the enriched value would move an
-        account into a different segment tier — which is to say, when getting it wrong would hand
-        the account to the wrong rep.
+        account into a different segment tier. That second one is really about handing the account
+        to the wrong rep.
       </p>
 
       <h2>Segments</h2>
@@ -105,7 +107,7 @@
             <tr><th>Tier</th><th>Employee count</th><th>Note</th></tr>
           </thead>
           <tbody>
-            <tr><td>Below 200</td><td>Under 200</td><td>Not a target — the product is free below 200 employees</td></tr>
+            <tr><td>Below 200</td><td>Under 200</td><td>Not a target, the product is free below 200 employees</td></tr>
             <tr><td>CM</td><td>200–999</td><td>Commercial</td></tr>
             <tr><td>MM</td><td>1,000–9,999</td><td>Mid-market</td></tr>
             <tr><td>ENT</td><td>10,000+</td><td>Enterprise</td></tr>
@@ -116,8 +118,8 @@
       <h2>The waterfall</h2>
       <p>
         Every account got a baseline. What it got beyond that depended on what it was worth
-        pursuing — the deeper and costlier enrichment was reserved for MM and ENT rather than
-        sprayed across the whole database.
+        pursuing. I reserved the deeper and costlier enrichment for MM and ENT instead of spraying
+        it across the whole database.
       </p>
 
       <div class="table-wrap">
@@ -132,7 +134,7 @@
             </tr>
             <tr>
               <td>Below 200</td>
-              <td>Baseline plus parent check — the lowest spend in the model</td>
+              <td>Baseline plus parent check, the lowest spend in the model</td>
             </tr>
             <tr>
               <td>CM</td>
@@ -150,30 +152,41 @@
         </table>
       </div>
 
+      <figure class="figure">
+        <img src="../assets/img/clay-waterfall-tables.png"
+             alt="Clay canvas showing four segment tables (ENT 10K+, MM under 10K, CM under 1K, and Below 200), each routing through a filter into a shared Parent/Child Mapping table, with a separate Partners table.">
+        <figcaption>
+          The tiers as tables. Note the per-row credit estimate on each: roughly 11 credits a row
+          for ENT and MM, 8 for CM. That's the spend model showing up as a number instead of a
+          policy document. Every tier routes through a filter into the same Parent/Child Mapping
+          table, which is where hierarchy gets resolved once instead of per segment.
+        </figcaption>
+      </figure>
+
       <h2>Validation, not just enrichment</h2>
       <p>
-        Filling fields in once is a project. Keeping them true is an operating model — so the
-        second half of the design was a recurring hygiene layer with an owner and a cadence rather
-        than a cleanup someone remembers to do in a slow quarter.
+        Filling fields in once is a project. Keeping them true is an operating model. So the
+        second half of the design was a recurring hygiene layer with an owner and a cadence,
+        instead of a cleanup someone remembers to do in a slow quarter.
       </p>
       <ul>
-        <li>Account name sweep to flag duplicates and junk records — roughly every six months</li>
-        <li>Data-quality account cleanup and reporting — roughly quarterly</li>
-        <li>Activity staleness checks — monthly and quarterly</li>
-        <li>Missing domain and country remediation — quarterly</li>
+        <li>Account name sweep to flag duplicates and junk records, roughly every six months</li>
+        <li>Data-quality account cleanup and reporting, roughly quarterly</li>
+        <li>Activity staleness checks, monthly and quarterly</li>
+        <li>Missing domain and country remediation, quarterly</li>
         <li>Employee count verification against brokers and public sources, weighted toward MM and ENT</li>
       </ul>
       <p>
         Deduplication got its own operating model: Salesforce duplicate rules to catch what they
         could, recurring SOQL pulls to surface what slipped past them, and an Apex-based merge
-        workflow to execute the cleanup automatically rather than through someone's manual queue.
-        Contacts got a lighter version — no-activity cleanup, email validation, and normalization
+        workflow to run the cleanup automatically instead of through someone's manual queue.
+        Contacts got a lighter version. No-activity cleanup, email validation, and normalization
         of the profile fields that marketing and PLG targeting actually depend on.
       </p>
 
       <h2>What it produced</h2>
       <ul>
-        <li>A documented enrichment spec — attributes, sources, and rules, by tier</li>
+        <li>A documented enrichment spec: attributes, sources, and rules, by tier</li>
         <li>A validation checklist with recurring hygiene jobs and reporting attached</li>
         <li>A dedupe playbook: the rules, the query, and the merge procedure</li>
         <li>A focused set of contact hygiene rules aligned to PLG and marketing targeting</li>
@@ -181,16 +194,16 @@
 
       <h2>What it was built to do</h2>
       <p>
-        Stated as intent, because that's all it ever got to be: improve completeness on the core
-        firmographic and hierarchy fields that routing depends on — domain, country, employee
-        count, HQ, industry, parent/child — cut duplicate and junk accounts out of the segmentation
-        logic, and replace ad hoc cleanup with scheduled, repeatable data-quality operations.
+        Stated as intent, because that's all it ever got to be. Improve completeness on the core
+        firmographic and hierarchy fields that routing depends on (domain, country, employee count,
+        HQ, industry, parent/child), cut duplicate and junk accounts out of the segmentation logic,
+        and replace ad hoc cleanup with scheduled, repeatable data-quality operations.
       </p>
       <p>
-        The part I'd defend regardless of whether it ever ran: the spend model. Uniform enrichment
-        treats a database as a list of equally valuable rows, which it never is. Tiering the
-        waterfall means the accounts worth understanding deeply get understood deeply, and the rest
-        cost almost nothing to keep clean.
+        The part I'd defend regardless of whether it ever ran is the spend model. Uniform
+        enrichment treats a database as a list of equally valuable rows, which it never is.
+        Tiering the waterfall means the accounts worth understanding deeply get understood deeply,
+        and the rest cost almost nothing to keep clean.
       </p>
     </div>
   </div>

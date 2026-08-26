@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Account Matcher — Try it — Zachary Pressley</title>
+<title>Account matcher: try it | Zachary Pressley</title>
 <meta name="description" content="A runnable sample of the SFDC Account Matcher: paste company names, get ranked candidate matches against a sample Salesforce account list with confidence bands.">
 <meta name="color-scheme" content="dark light">
 <link rel="stylesheet" href="../assets/css/style.css">
@@ -64,7 +64,7 @@
   <div class="wrap">
     <a class="back" href="../projects/sfdc-account-matcher.html">← Back to the case study</a>
 
-    <h1>Account Matcher — try it</h1>
+    <h1>Account matcher: try it</h1>
     <p class="case__lede">
       Paste a list of company names on the left. Each one gets scored against the sample
       Salesforce account list on the right, and comes back with its top three candidates and a
@@ -75,8 +75,8 @@
       <h4>What this sample is and isn't</h4>
       <p>
         The real tool runs two engines: fuzzy string matching, and a local sentence embedding
-        model that picks up what the string match misses. Only the first can run in a browser —
-        a language model won't fit in a static page. So this sample is the string half.
+        model that picks up what the string match misses. Only the first can run in a browser,
+        because a language model won't fit in a static page. So this sample is the string half.
       </p>
       <p>
         That turns out to be the useful thing to show. Watch what the string matcher does with
@@ -121,16 +121,16 @@
     <div class="prose">
       <h2>How the scoring works</h2>
       <p>
-        Names are normalized first — lowercased, punctuation stripped, and legal suffixes like
+        Names are normalized first: lowercased, punctuation stripped, and legal suffixes like
         <code>Inc</code>, <code>Corp</code>, <code>LLC</code>, and <code>Holdings</code> removed,
-        so <code>Acme, Inc.</code> and <code>Acme Inc</code> stop being different strings. Then
-        two similarity measures run and the higher one wins: an edit-distance ratio over
-        alphabetically sorted tokens, which handles reordering and small typos, and a token
-        overlap ratio, which handles one name being a subset of another.
+        so <code>Acme, Inc.</code> and <code>Acme Inc</code> stop being different strings. Then two
+        similarity measures run and the higher one wins: an edit-distance ratio over alphabetically
+        sorted tokens, which handles reordering and small typos, and a token overlap ratio, which
+        handles one name being a subset of another.
       </p>
       <p>
         If a domain is supplied it's scored separately and blended in, weighted at a quarter of
-        the total — a matching domain is strong evidence, but not on its own conclusive when the
+        the total. A matching domain is strong evidence, but not conclusive on its own when the
         names disagree. Results band at 90 and 75: safe to use, worth a spot check, send to a
         human.
       </p>

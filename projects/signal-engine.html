@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nonprofit Growth-Signal Engine — Zach Pressley</title>
+<title>Nonprofit Growth-Signal Engine | Zach Pressley</title>
 <meta name="description" content="A GTM engineering take-home: an enrichment waterfall that finds nonprofits actively investing in fundraising capacity, and only pays for enrichment on the shortlist that earns it.">
 <meta name="color-scheme" content="dark light">
 <link rel="stylesheet" href="../assets/css/style.css">
@@ -31,8 +31,8 @@
     <p class="case__lede">
       A GTM engineering take-home: design a system that finds every nonprofit actively hiring
       fundraising leadership, ranks them by real hiring intensity, and puts callable contacts in
-      front of an AE — without spending enrichment credits on the records that were never going
-      to qualify.
+      front of an AE, without spending enrichment credits on the records that were never going to
+      qualify.
     </p>
 
     <dl class="facts">
@@ -43,7 +43,7 @@
     </dl>
 
     <div class="embed">
-      <iframe src="../decks/signal-not-noise.html" title="Signal, Not Noise — slide deck" loading="lazy"></iframe>
+      <iframe src="../decks/signal-not-noise.html" title="Signal, Not Noise slide deck" loading="lazy"></iframe>
     </div>
     <p class="embed-note">Click into the deck, then use ← → to move between slides.</p>
     <div class="doclinks">
@@ -55,17 +55,17 @@
       <h2>The ask</h2>
       <p>
         A sales leader wants every mid-to-large nonprofit currently hiring a Director of
-        Development or a Development Operations role — found, scored by urgency, and routed to
-        the right rep quickly. The interesting part isn't the search. It's that paid enrichment
-        makes a naive version of this expensive: enrich everything you find, and most of the
-        spend lands on organizations that were never going to clear the bar.
+        Development or a Development Operations role. Found, scored by urgency, and routed to the
+        right rep quickly. The interesting part isn't the search. It's that paid enrichment makes
+        a naive version of this expensive. Enrich everything you find and most of the spend lands
+        on organizations that were never going to clear the bar.
       </p>
 
       <h2>The shape of the problem</h2>
       <p>
         Data volume in this pipeline moves like a barbell. Many raw postings narrow to one row
         per company, get scored down to a small outlier shortlist, then fan back out to several
-        contacts per flagged organization. Both pinch points are where duplicates get made — or
+        contacts per flagged organization. Both pinch points are where duplicates get made, or
         killed.
       </p>
       <ul>
@@ -85,27 +85,27 @@
       <h2>How it runs</h2>
       <p>Three phases, and each one spends money differently.</p>
 
-      <h3>1 · Collect — sweep everything, spend nothing</h3>
+      <h3>1 · Collect: sweep everything, spend nothing</h3>
       <p>
-        A Claude Code scraper on a cron job works Idealist, the AFP Career Center, and state
-        nonprofit association boards. A Cowork task parses LinkedIn saved-search alert emails out
+        I put a Claude Code scraper on a cron job against Idealist, the AFP Career Center, and
+        state nonprofit association boards. A Cowork task parses LinkedIn saved-search alert emails out
         of a connected Gmail account. Everything lands in one deduped JSON ledger, matched on
-        posting URL — or on organization plus title plus post date where no stable URL exists.
+        posting URL, or on organization plus title plus post date where no stable URL exists.
         Storage and comparison cost nothing per record, so this layer stays effectively free.
       </p>
 
-      <h3>2 · Score — compare peers, not the whole population</h3>
+      <h3>2 · Score: compare peers, not the whole population</h3>
       <p>
-        Postings collapse on normalized domain into a Companies table, one row per organization
+        I collapse postings on normalized domain into a Companies table, one row per organization
         regardless of how many concurrent reqs it has. Those companies split into employee-count
         tiers, and each tier is scored independently against a median and interquartile range.
         An organization whose concurrent postings exceed <code>Q3 + 1.5 × IQR</code> for its tier
-        is hiring beyond what normal churn explains — that's the signal, and it scores a 5. Where
+        is hiring beyond what normal churn explains. That's the signal, and it scores a 5. Where
         a tier's sample is too thin for IQR to mean anything, percentile rank in bands of 20%
         stands in. Still no credits spent.
       </p>
 
-      <h3>3 · Expand — now, and only now, money moves</h3>
+      <h3>3 · Expand: now, and only now, money moves</h3>
       <p>
         A score of 5 fires <em>Find Contacts at Company</em>, searching target buyer titles rather
         than the requisition that tripped the flag. Results dedupe on email plus LinkedIn URL, then
@@ -120,12 +120,12 @@
         <li>
           <strong>Match to CRM before spending credits, at both the account and contact level.</strong>
           Clay writes to the CRM over API, which typically bypasses CRM dedupe rules on object
-          creation. These checks <em>are</em> the dedupe — and they cut spend at the same time.
+          creation. These checks <em>are</em> the dedupe, and they cut spend at the same time.
         </li>
         <li>
           <strong>Score against peer tiers, not the raw population.</strong> A flat count of open
-          postings just re-ranks the biggest organizations. It rewards size, not intent — the
-          exact vanity metric the system exists to avoid.
+          postings just re-ranks the biggest organizations. It rewards size instead of intent,
+          which is the exact vanity metric the system exists to avoid.
         </li>
         <li>
           <strong>Reserve paid discovery for the shortlist.</strong> Letting the enrichment
@@ -135,7 +135,7 @@
         <li>
           <strong>Normalize before you dedupe.</strong> Clay's built-in dedupe is exact-match only,
           so it won't catch "Acme Inc" against "Acme, Inc." Normalizing name and domain into a
-          shared key is the load-bearing step — not the lookup that follows it.
+          shared key is the load-bearing step, not the lookup that follows it.
         </li>
       </ul>
 
@@ -143,9 +143,9 @@
       <p>
         A specific requisition can fill or expire, but the organization already cleared the outlier
         bar. What's real and current is its demonstrated investment in fundraising capacity, not the
-        literal job posting — and the target-title contacts remain callable people at a company that
-        is spending on this problem right now. When a posting closes, refresh the talk track, not the
-        lead.
+        literal job posting. The target-title contacts are still callable people at a company that
+        is spending on this problem right now. When a posting closes, refresh the talk track, not
+        the lead.
       </p>
     </div>
   </div>

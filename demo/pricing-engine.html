@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pricing Engine — try it — Zachary Pressley</title>
+<title>Pricing engine: try it | Zachary Pressley</title>
 <meta name="description" content="A runnable model of the inputs → cost → price relationship: a circular price-to-cost dependency solved by iteration, and tiered volume pricing with a capped overage.">
 <meta name="color-scheme" content="dark light">
 <link rel="stylesheet" href="../assets/css/style.css">
@@ -75,11 +75,11 @@
   <div class="wrap">
     <a class="back" href="../projects/pricing-roi-pipeline.html">← Back to the case study</a>
 
-    <h1>Pricing engine — try it</h1>
+    <h1>Pricing engine: try it</h1>
     <p class="case__lede">
       Move the inputs and watch cost and price resolve against each other. One cost line is a
-      percentage of the final price, so there's no single-pass answer — the engine has to
-      iterate until it settles.
+      percentage of the final price, so there's no single-pass answer. The engine has to iterate
+      until it settles.
     </p>
 
     <div class="callout">
@@ -158,7 +158,7 @@
 
     <h2 style="font-size:1.35rem;margin:2.6rem 0 .3rem">Tiers, and why the overage is capped</h2>
     <p style="color:var(--text-dim);max-width:64ch;margin:0 0 .4rem">
-      Volume above a tier's ceiling bills at an overage rate — but capped, at every step, against
+      Volume above a tier's ceiling bills at an overage rate, but capped at every step against
       the next tier's flat price. Without the cap, sitting just above a boundary could cost more
       than moving up a tier, which is the kind of thing a customer notices on an invoice.
     </p>
@@ -172,7 +172,7 @@
     <div class="prose">
       <h2>The part worth explaining</h2>
       <p>
-        Price is a function of cost — <code>price = cost / (1 − margin)</code>. But one cost line
+        Price is a function of cost: <code>price = cost / (1 − margin)</code>. But one cost line
         is a percentage of the final price, so cost is also a function of price. Neither resolves
         without the other already being known.
       </p>
@@ -181,9 +181,9 @@
         build deliberately didn't use it: it's a file-level toggle, and it fails silently if a
         collaborator's copy has it switched off. A pricing model that quietly returns wrong
         numbers depending on someone else's settings is worse than one that doesn't run. So the
-        loop was unrolled by hand into about twenty sequential blocks — compute cost from the
-        prior price, compute price from that cost, repeat — which converges in a handful of
-        rounds and depends on nothing outside the formulas themselves.
+        loop was unrolled by hand into about twenty sequential blocks: compute cost from the prior
+        price, compute price from that cost, repeat. That converges in a handful of rounds and
+        depends on nothing outside the formulas themselves.
       </p>
       <p>
         There is a closed form. Substituting and solving gives
@@ -377,7 +377,7 @@
 
     $("tier-caption").textContent = here.capped
       ? "At " + num(records) + " records the raw overage would be " + money(here.uncapped) +
-        " — capped to " + money(here.price) + ", the next tier's flat price."
+        ", capped to " + money(here.price) + ", the next tier's flat price."
       : "At " + num(records) + " records: " + money(here.price) + ". Dashed line is what overage would charge uncapped.";
   }
 
@@ -397,7 +397,7 @@
       $("diverge-text").textContent =
         "A partner share of " + (inp.revshare * 100).toFixed(0) +
         "% leaves no room inside a " + (inp.margin * 100).toFixed(0) +
-        "% margin — every round raises the price, which raises the partner cost, which raises the " +
+        "% margin. Every round raises the price, which raises the partner cost, which raises the " +
         "price again. The iteration runs away instead of settling.";
     }
 
@@ -427,7 +427,7 @@
     } else {
       var gap = Math.abs(r.price - r.exact);
       $("out-check").textContent =
-        "Closed form — fixed cost / (1 − margin − partner share) — gives " + money2(r.exact) +
+        "Closed form, fixed cost / (1 − margin − partner share), gives " + money2(r.exact) +
         ". The iteration lands within " + (gap < 0.005 ? "a cent" : money2(gap)) + " of it.";
     }
 

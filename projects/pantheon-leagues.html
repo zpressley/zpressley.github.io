@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pantheon Leagues — Zachary Pressley</title>
+<title>Pantheon Leagues | Zachary Pressley</title>
 <meta name="description" content="A fantasy baseball platform built from scratch: live draft and auction tooling, a custom league-currency system with a salary-cap calculator, and a migration of 12+ years of league history off Yahoo Fantasy Sports.">
 <meta name="color-scheme" content="dark light">
 <link rel="stylesheet" href="../assets/css/style.css">
@@ -29,9 +29,9 @@
 
     <h1>Pantheon Leagues</h1>
     <p class="case__lede">
-      A fantasy baseball platform built from scratch — live draft and auction tooling, a league
-      economy with its own currency and salary cap, and twelve years of league history carried
-      off Yahoo Fantasy Sports without losing any of it.
+      A fantasy baseball platform I built from scratch: live draft and auction tooling, a league
+      economy with its own currency and salary cap, and twelve years of league history carried off
+      Yahoo Fantasy Sports without losing any of it.
     </p>
 
     <dl class="facts">
@@ -44,23 +44,23 @@
     <div class="prose">
       <h2>Why build it</h2>
       <p>
-        Off-the-shelf fantasy platforms assume every league plays the same way. Ours didn't — a
-        keeper format with its own currency, a salary cap, and rules that had accumulated over a
-        decade of play. Running it meant a spreadsheet beside the platform, and eventually the
-        spreadsheet was where the league actually lived.
+        Off-the-shelf fantasy platforms assume every league plays the same way. Ours doesn't. We
+        run a keeper format with its own currency, a salary cap, and rules that have piled up over
+        a decade of play. Running it meant keeping a spreadsheet beside the platform, and
+        eventually the spreadsheet was where the league actually lived.
       </p>
       <p>
         Three separate tools grew out of that: a prospect database, a trade evaluator, and a
-        draft app. Each one solved a piece of a season, and none of them talked to the others —
-        so the same player existed three times, in three shapes, with no shared truth about who
-        he was or how he was performing.
+        draft app. Each one solved a piece of a season, and none of them talked to the others. The
+        same player existed three times, in three shapes, with no shared truth about who he was or
+        how he was performing.
       </p>
 
       <h2>What it is now</h2>
       <p>
-        One Postgres-backed application where the player is the primary entity and everything
-        else — prospect grades, contract and salary state, draft board position, live season
-        stats — hangs off it.
+        Now it's one Postgres-backed application where the player is the primary entity and
+        everything else hangs off it: prospect grades, contract and salary state, draft board
+        position, live season stats.
       </p>
       <ul>
         <li>
@@ -73,8 +73,8 @@
         </li>
         <li>
           <strong>Twelve-plus years of history, migrated.</strong> Every season carried off Yahoo
-          Fantasy Sports — which meant reconciling player identities across a decade of roster
-          data, trades, and name changes into one identity per player.
+          Fantasy Sports, which meant reconciling player identities across a decade of roster data,
+          trades, and name changes into one identity per player.
         </li>
         <li>
           <strong>Live data sync.</strong> Season stats stay current without re-ingesting the
@@ -85,10 +85,10 @@
       <h2>The interesting problem</h2>
       <p>
         Player identity. Sources don't agree on IDs, don't agree on naming, and a decade of
-        archived league data agrees with neither. Nearly everything else in the system — trade
-        valuation, cap math, draft board position, historical records — is only as trustworthy as
-        the resolution layer underneath it, which is the same problem I spend my working life on
-        with accounts and contacts, in a domain where I happen to know every record personally.
+        archived league data agrees with neither. Nearly everything else in the system depends on
+        getting that right: trade valuation, cap math, draft board position, historical records.
+        It's the same problem I spend my working life on with accounts and contacts, except here I
+        happen to know every record personally.
       </p>
     </div>
   </div>

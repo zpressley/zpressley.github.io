@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pricing-to-ROI Pipeline — Zachary Pressley</title>
+<title>Pricing-to-ROI Pipeline | Zachary Pressley</title>
 <meta name="description" content="A pricing engine that solved a circular price-to-cost dependency without iterative calculation, plus a client-facing ROI calculator and an auto-populated deliverable. Built in Google Sheets at TrustEngine.">
 <meta name="color-scheme" content="dark light">
 <link rel="stylesheet" href="../assets/css/style.css">
@@ -33,9 +33,9 @@
 
     <h1>Pricing-to-ROI Pipeline</h1>
     <p class="case__lede">
-      Pricing had a circular problem nobody had solved cleanly: the price of a deal depended on
+      Pricing had a circular problem nobody had solved cleanly. The price of a deal depended on
       its cost, and one of the cost lines was defined as a percentage of the final price. Before
-      this, the CFO priced every deal by hand — guess a price, check the margin, adjust, repeat.
+      this, the CFO priced every deal by hand: guess a price, check the margin, adjust, repeat.
     </p>
 
     <dl class="facts">
@@ -104,26 +104,26 @@
       <h2>A price that depends on a cost that depends on the price</h2>
       <p>
         Price comes from cost and a target margin: <code>price = cost / (1 − margin)</code>. But
-        one cost line was itself a percentage of the final price, and another scaled with
-        projected usage that also moved with price. That's a fixed-point problem — neither side
-        resolves until the other is already known — and there's no single-pass formula for it.
+        one cost line was itself a percentage of the final price, and another scaled with projected
+        usage that also moved with price. Neither side resolves until the other is already known,
+        and there's no single-pass formula for that.
       </p>
 
       <h2>Why not just turn on iterative calculation</h2>
       <p>
         Google Sheets has a setting for exactly this. I didn't use it, for one reason: it's a
         file-level toggle. If a collaborator works in a copy where it's switched off, the model
-        doesn't error — it silently returns the wrong number. A pricing tool whose correctness
-        depends on a checkbox in somebody else's settings menu is worse than one that doesn't
-        run at all, because you can't tell by looking.
+        doesn't error. It silently returns the wrong number. A pricing tool whose correctness
+        depends on a checkbox in somebody else's settings menu is worse than one that doesn't run
+        at all, because you can't tell by looking.
       </p>
       <p>
-        So the loop was unrolled by hand into roughly twenty sequential blocks: compute cost from
+        So I unrolled the loop by hand into roughly twenty sequential blocks: compute cost from
         the prior price, compute price from that cost, repeat. Each round nudges the estimate
         closer, and because the circular line is a small fraction of the total, the correction
-        shrinks every round. It converges within a handful of iterations — the rest of the chain
-        is margin for safety, not because anything is still moving. An input goes in, a converged
-        price comes out, deterministically, depending on nothing but the formulas themselves.
+        shrinks every round. It converges within a handful of iterations. The rest of the chain is
+        margin for safety, not because anything is still moving. An input goes in, a converged
+        price comes out, and it depends on nothing but the formulas themselves.
       </p>
       <p>
         <a href="../demo/pricing-engine.html">The demo</a> runs that model live: move the inputs
@@ -133,29 +133,29 @@
 
       <h2>Tiered volume pricing, capped at every boundary</h2>
       <p>
-        A separate part of the engine handled volume tiers: cost stepped down as volume rose,
-        with an overage rate applied above each tier's ceiling. The overage is capped with
+        A separate part of the engine handled volume tiers. Cost stepped down as volume rose,
+        with an overage rate applied above each tier's ceiling. I capped that overage with
         <code>MIN()</code> against the next tier's flat price at every step, so usage just past a
         boundary can never cost more via overage than simply being moved up a tier would.
       </p>
       <p>
         Without that cap you get an invoice where buying more costs less than buying slightly
-        less — the kind of thing a customer finds once and never forgets. Nine or ten tiers deep,
-        with nested conditionals doing tier lookup on top of the cap.
+        less, which is the kind of thing a customer finds once and never forgets. Nine or ten
+        tiers deep, with nested conditionals doing tier lookup on top of the cap.
       </p>
 
       <h2>The client-facing side</h2>
       <p>
-        On top of the engine sat a calculator a rep could run with a prospect's own numbers —
-        loan volume, conversion rate, average deal size. It computed monthly volume, monthly
-        revenue, and total cost under both the legacy platform and the new one, then derived an
-        ROI multiple from the delta.
+        On top of the engine sat a calculator a rep could run with a prospect's own numbers: loan
+        volume, conversion rate, average deal size. It computed monthly volume, monthly revenue,
+        and total cost under both the legacy platform and the new one, then derived an ROI
+        multiple from the delta.
       </p>
       <p>
-        Inputs were colour-separated by source: one colour for model assumptions the company set,
-        another for the client's own figures. A rep could see at a glance which numbers were
-        theirs to change and which weren't — which matters when you're sitting across from
-        someone asking where a number came from.
+        I colour-separated the inputs by source: one colour for model assumptions the company set,
+        another for the client's own figures. A rep could see at a glance which numbers were theirs
+        to change and which weren't. That matters when you're sitting across from someone asking
+        where a number came from.
       </p>
 
       <h2>And then it wrote itself up</h2>
@@ -169,17 +169,17 @@
       <h2>What I'd keep and what I'd change</h2>
       <p>
         The unrolled iteration was the right call in a spreadsheet, and I'd make it again there.
-        In code it's unnecessary — substituting the circular term and solving gives a closed form
+        In code it's unnecessary. Substituting the circular term and solving gives a closed form
         that lands on the same number in one step, and the demo computes both to show they agree.
-        The algebra is trivial on paper and genuinely awkward across spreadsheet cells that each
-        have to hold one readable, auditable step of a business calculation.
+        The algebra is trivial on paper and awkward across spreadsheet cells that each have to hold
+        one readable, auditable step of a business calculation.
       </p>
       <p>
-        The closed form does surface one thing twenty unrolled blocks hide: when the percentage
-        cost exceeds the margin headroom, there is no price that satisfies the target — not a
-        large price, none. The iteration just runs away, and a chain of blocks doesn't announce
-        that. It's the kind of edge case worth making loud rather than letting someone discover
-        it in front of a customer.
+        The closed form does surface one thing twenty unrolled blocks hide. When the percentage
+        cost exceeds the margin headroom, there is no price that satisfies the target. Not a large
+        price, none. The iteration just runs away, and a chain of blocks doesn't announce that.
+        However you build it, that's an edge case worth making loud instead of letting someone
+        discover it in front of a customer.
       </p>
     </div>
   </div>

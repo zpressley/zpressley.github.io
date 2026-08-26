@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SFDC Account Matcher — Zachary Pressley</title>
-<meta name="description" content="A local matching tool that scored incoming company lists against exported Salesforce accounts — fuzzy string matching and a local embedding model in parallel, returning ranked candidates with confidence bands instead of a flat yes or no.">
+<title>SFDC Account Matcher | Zachary Pressley</title>
+<meta name="description" content="A local matching tool that scored incoming company lists against exported Salesforce accounts. Fuzzy string matching and a local embedding model, returning ranked candidates with confidence bands instead of a flat yes or no.">
 <meta name="color-scheme" content="dark light">
 <link rel="stylesheet" href="../assets/css/style.css">
 </head>
@@ -29,9 +29,9 @@
 
     <h1>SFDC Account Matcher</h1>
     <p class="case__lede">
-      Company lists kept arriving with no reliable way to check them against Salesforce. I built
-      a matching tool that returned ranked candidates with a confidence score instead of a flat
-      yes or no — so a reviewer got a reason to trust a match, not just a match.
+      Company lists kept arriving with no reliable way to check them against Salesforce. I built a
+      matching tool that returned ranked candidates with a confidence score instead of a flat yes
+      or no, so a reviewer could see how good the match actually was before acting on it.
     </p>
 
     <dl class="facts">
@@ -49,10 +49,10 @@
     <div class="prose">
       <h2>The problem</h2>
       <p>
-        Partner lists, event lists, campaign lists — they arrived constantly, and every one of
+        Partner lists, event lists, campaign lists. They arrived constantly, and every one of
         them raised the same question: which of these are already accounts in Salesforce? A plain
         text match answered it badly. Name variants, abbreviations, and legal suffixes broke it
-        on the easy cases, and parent/subsidiary structure broke it on the hard ones. A row for
+        on the easy cases. Parent/subsidiary structure broke it on the hard ones. A row for
         <em>BNSF Railway</em> needs to resolve to the <em>Berkshire Hathaway</em> account, and no
         amount of string comparison will ever get there.
       </p>
@@ -66,7 +66,7 @@
       <ul>
         <li>
           <strong>Fuzzy string matching</strong> (<code>rapidfuzz</code>) for close textual
-          variants — abbreviations, legal suffixes, formatting differences. This is what handles
+          variants: abbreviations, legal suffixes, formatting differences. This is what handles
           <code>NTT DATA</code> against <code>NTT Data Corporation</code>.
         </li>
         <li>
@@ -78,15 +78,15 @@
         </li>
         <li>
           <strong>Hybrid</strong>, which is the one worth using. Semantic runs first, and the
-          names it didn't match fall through to fuzzy — the expensive engine goes first and the
-          cheap one sweeps up behind it, rather than running both across everything and
+          names it didn't match fall through to fuzzy. The expensive engine goes first and the
+          cheap one sweeps up behind it, instead of running both across everything and
           reconciling afterward.
         </li>
       </ul>
 
       <h2>Confidence, not verdicts</h2>
       <p>
-        Every input came back with its top three candidates rather than one answer. Each
+        I had every input come back with its top three candidates instead of one answer. Each
         candidate carried a name-similarity score and a domain-match score, blended into a single
         combined figure, then banded for triage:
       </p>
@@ -105,49 +105,45 @@
       </div>
 
       <p>
-        The banding is the whole design. A binary matcher fails silently in two directions — it
-        creates duplicate accounts when it's wrong, and it drops real matches when it's cautious.
-        Ranked candidates with a visible score turn both failure modes into a short queue somebody
-        can work through in a few minutes.
+        A binary matcher fails silently in two directions. It creates duplicate accounts when it's
+        wrong, and it drops real matches when it's cautious. Ranked candidates with a visible score
+        turn both of those into a short queue somebody can work through in a few minutes.
       </p>
 
       <h2>Contacts work differently</h2>
       <p>
-        The account side scores names against names. The contact side can't, because
-        contacts have an actual identifier — so instead of one scorer it runs a priority
-        cascade. An exact email match comes first and the name is then used to
-        <em>validate</em> it rather than to decide it; a matching email whose name disagrees
-        is a flag worth catching, not a match to trust. Only when email fails does it fall
-        back to fuzzy name matching above a threshold the user sets.
+        Contacts have an actual identifier, so instead of one scorer the contact side runs a
+        priority cascade. An exact email match comes first, and the name is then used to
+        <em>validate</em> that match. A matching email whose name disagrees is a flag worth
+        catching. Only when email fails does it fall back to fuzzy name matching, above a
+        threshold the user sets.
       </p>
       <p>
-        The fallback doesn't score against every contact in the export, either. An inverted
-        index of name words narrows the field to a small candidate set first, and fuzzy matching
-        runs only on that — which is what keeps it usable against a full contact export rather
-        than a sample.
+        The fallback doesn't score against every contact in the export, either. An inverted index
+        of name words narrows the field to a small candidate set first, and fuzzy matching runs
+        only on that. That's what keeps it usable against a full contact export instead of a
+        sample.
       </p>
       <p>
-        Every result carries the method that produced it — <code>Email + Full Name (98%)</code>,
-        <code>Name Only — Flexible (87%)</code> — so a reviewer can see why something matched
-        and not just how well. Same principle as the banding: give a person a reason, not a
-        verdict.
+        Every result carries the method that produced it: <code>Email + Full Name (98%)</code>,
+        <code>Name Only - Flexible (87%)</code>. A reviewer can see why something matched, not
+        only how well.
       </p>
 
       <h2>Why it was an app</h2>
       <p>
-        Packaged as a local Streamlit app rather than a notebook or a one-off script, so
-        teammates without a Python environment could upload a CSV and get scored output back
-        without touching code. That's what made it a standing step in how incoming lists got
-        handled, rather than a cleanup someone ran once and forgot about.
+        Packaged as a local Streamlit app instead of a notebook or a one-off script, so teammates
+        without a Python environment could upload a CSV and get scored output back without touching
+        code. It became a standing step in how incoming lists got handled, which a script sitting
+        in someone's home directory never would have.
       </p>
 
       <h2>The constraint that shaped it</h2>
       <p>
-        No API meant batch, running against periodically exported account data. That's a
-        consequence of the access limitation, not a preference — and worth stating plainly,
-        because the same tool with API access is a different and simpler piece of software. The
-        interesting work here was getting good answers out of a stale export, which is the
-        situation most people are actually in.
+        No API meant batch, running against periodically exported account data. That was forced,
+        not chosen. With API access this is a different and much simpler piece of software: you
+        look the account up and you have your answer. Without it, everything above exists to get a
+        trustworthy answer out of a file that was already out of date when it was downloaded.
       </p>
     </div>
   </div>
