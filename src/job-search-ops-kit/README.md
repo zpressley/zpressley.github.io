@@ -1,6 +1,6 @@
-# Job Search Ops Kit
+# Go-To-Job-Market Kit
 
-The genericized version of the system described in the
+The genericized version of the Go-To-Job-Market System described in the
 [case study](https://zpressley.github.io/projects/job-search-ops.html): a Notion
 workspace, a verified accomplishment bank, and three scheduled Claude skills that handle
 the repetitive parts of a job search.

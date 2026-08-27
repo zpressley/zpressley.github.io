@@ -1,4 +1,4 @@
-# Notion API Gotchas — Learned the Hard Way
+# Notion API Gotchas, Learned the Hard Way
 
 Real errors hit while building this system, and what actually fixed them.
 If you're building something similar via Claude's Notion tools, this will
@@ -19,11 +19,11 @@ ADD COLUMN "Staleness" FORMULA('if(prop("Status") == "Rejected", "CLOSED", "ACTI
 
 Standard operators (`==`, `>=`, `and`/`or`) work fine *inside* the quoted
 string. Don't waste time on function-call workarounds like `equal()` or
-`greaterThanOrEqualTo()` — that's solving the wrong problem.
+`greaterThanOrEqualTo()`. That's solving the wrong problem.
 
 **Also:** avoid raw emoji characters inside formula string literals. They
 can silently corrupt into garbled text on write. Plain ASCII labels are
-safer for anything a formula generates — use Notion's native color-coded
+safer for anything a formula generates. Use Notion's native color-coded
 Select/Status properties if you want color, not emoji-in-text.
 
 ## Adding options to an existing Select/Status column
@@ -36,30 +36,30 @@ ALTER COLUMN "Connection Status" SET SELECT('Option A':gray, 'Option B':green, .
 ```
 
 List *all* existing options plus the new ones, with their original colors
-— this replaces the full option set, it doesn't append.
+This replaces the full option set, it doesn't append.
 
 ## Cross-database SQL queries
 
 `notion-query-data-sources` can run aggregate queries (COUNT, GROUP BY)
 against a single database fine. Subqueries spanning multiple data sources
-in one query currently require a Notion Business plan — this is a real
+in one query currently require a Notion Business plan, which is a real
 plan gate, not a tool bug, and shows up as an upsell error.
 
 ## Formula/rollup fields aren't queryable
 
 Formula and rollup properties (anything computed, like a Staleness or
 Days-in-Pipeline field) show up in a `notAvailableInQuerySql` list and
-can't be filtered/selected via the SQL query tool — only read via direct
+can't be filtered/selected via the SQL query tool, only read via direct
 page fetch. Even then, a page fetch returns an opaque `formulaResult://`
 pointer, not the resolved value. There's currently no reliable way to
-programmatically read what a formula actually evaluates to — you have to
+programmatically read what a formula actually evaluates to. You have to
 trust the formula logic and spot-check in the Notion UI.
 
 ## Case-sensitivity trap in SQL queries
 
 A query like `SELECT "company" FROM ...` may silently match a differently-
 cased property (`"Company"`) due to case-insensitive column resolution in
-the query layer — this can make a genuinely empty duplicate property look
+the query layer, which can make a genuinely empty duplicate property look
 "100% filled" in an aggregate query. If two similarly-named properties
 exist, verify with a direct page fetch, not a SQL aggregate, before
 concluding either one is in use.
@@ -98,7 +98,7 @@ Just retry once before assuming something is actually broken.
 
 If you're deduping records sourced from an external feed (job board
 listings, RSS, etc.), matching on a unique ID from that feed isn't
-sufficient — the same underlying listing can get issued multiple
+sufficient, because the same underlying listing can get issued multiple
 different tracking IDs (reposts, syndication, multiple entry points).
 Dedupe primarily on the semantic content (e.g., Company + Role title,
 normalized) and treat ID matching as a secondary signal, not the primary
