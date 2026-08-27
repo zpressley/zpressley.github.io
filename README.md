@@ -24,6 +24,7 @@ count build themselves from the tags on the cards, so nothing else needs updatin
 index.html              home: hero, work grid, about, contact
 projects/
   _template.html        copy this for each new case study
+  job-search-ops.html
   clay-enrichment-waterfall.html
   signal-engine.html
   sfdc-account-matcher.html
@@ -36,6 +37,7 @@ demo/
   pricing-engine.html   runnable cost → price model with the tier chart
 src/
   sfdc-account-matcher/ project source, linked from the case study
+  job-search-ops-kit/   the deployable kit, linked from the case study
 assets/
   css/style.css         all styling; colors are CSS variables at the top
   js/main.js            theme toggle + project filtering (reads the cards in the DOM)

@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Job Search Ops Platform | Zachary Pressley</title>
+<meta name="description" content="A Notion and Claude platform that runs my own job search: four linked databases, a verified accomplishment bank, and three scheduled automations. Packaged and given away as a deployable kit.">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a class="nav__mark" href="../index.html">Zach Pressley<span>.</span></a>
+    <div class="nav__links">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#about">About</a>
+      <a href="../assets/files/zach-pressley-resume.pdf" target="_blank" rel="noopener">Resume</a>
+      <a href="../index.html#contact">Contact</a>
+      <button class="theme-toggle" type="button" aria-label="Switch theme">☀</button>
+    </div>
+  </div>
+</nav>
+
+<main class="case">
+  <div class="wrap">
+    <a class="back" href="../index.html#work">← All work</a>
+
+    <h1>Job Search Ops Platform</h1>
+    <p class="case__lede">
+      I got laid off in August 2026, and instead of grinding through applications I spent the
+      first week building the system I actually needed. It runs my search now: four linked Notion
+      databases, a verified bank of my real accomplishments, and three scheduled automations
+      doing the repetitive parts.
+    </p>
+
+    <dl class="facts">
+      <div class="fact"><dt>Role</dt><dd>Design &amp; build</dd></div>
+      <div class="fact"><dt>Timeline</dt><dd>2026, running now</dd></div>
+      <div class="fact"><dt>Stack</dt><dd>Claude, Notion API, Cowork, Gmail/Calendar/Drive, Python</dd></div>
+      <div class="fact"><dt>Scale</dt><dd>160+ tracked opportunities</dd></div>
+    </dl>
+
+    <div class="doclinks">
+      <a class="btn btn--primary" href="https://github.com/zpressley/zpressley.github.io/tree/main/src/job-search-ops-kit" target="_blank" rel="noopener">Take the kit ↗</a>
+    </div>
+
+    <div class="prose">
+      <h2>The problem</h2>
+      <p>
+        The same week I was laid off, my LinkedIn inbox filled up with recruiter messages, job
+        alerts, and warm intros. Within days I had lost track of who I had talked to, which job
+        descriptions I had actually read closely, and which version of my resume went where. A
+        spreadsheet was not going to hold up once volume picked up, and I had been burned before
+        by generic untailored applications going nowhere.
+      </p>
+
+      <h2>Four databases, not one table</h2>
+      <ul>
+        <li>
+          <strong>Applications.</strong> Every role I am tracking, including ones I have not
+          applied to yet. A <code>Staleness</code> formula flags anything sitting without movement
+          for 3+ days, so nothing quietly dies from neglect.
+        </li>
+        <li>
+          <strong>LinkedIn Outreach.</strong> Every person from comments, DMs, and InMails, with
+          its own connection-status pipeline and its own staleness tracking.
+        </li>
+        <li>
+          <strong>Email Sync Log.</strong> A running record of what Gmail is telling me,
+          cross-referenced against the applications it relates to.
+        </li>
+        <li>
+          <strong>Meeting Prep &amp; Notes.</strong> Relation-linked to Applications, populated
+          with company research and interviewer background before every call.
+        </li>
+      </ul>
+      <p>
+        Alongside those sits a Mission Statement page holding my salary floor, location
+        preference, and seniority target. Every automated priority score gets weighed against it,
+        so the system ranks against what I actually want instead of against whatever arrived most
+        recently.
+      </p>
+
+      <h2>The hardest problem was accuracy, not automation</h2>
+      <p>
+        Early on I fed Claude a pile of source material, old resumes and cover letters and a
+        LinkedIn export, and asked it to build a bank of my real accomplishments for the tailoring
+        pipeline to pull from. It found two problems immediately.
+      </p>
+      <p>
+        One cover letter described me tracing a production bug through raw JSON metadata and
+        building a 23-scenario test matrix. It was detailed enough that it read as suspicious
+        rather than impressive. A resume draft claimed a platform migration was fully
+        "modernized," but the actual project doc from my last day showed it still sitting in
+        sandbox with three open blockers.
+      </p>
+      <p>
+        Neither was intentional dishonesty. It is what happens when you draft application
+        materials over months with AI help, and the story drifts a little each time it gets
+        rewritten. It is also exactly the kind of thing that falls apart under a real follow-up
+        question in an interview.
+      </p>
+      <p>
+        So the Background Bank became a verification layer instead of a content store. Every claim
+        traces to a real source. Conflicting numbers across documents get flagged rather than
+        silently resolved. Anything unconfirmed stays out until I sign off on it. Every automated
+        resume and cover letter pulls only from that page. That is the difference between AI
+        helping me apply faster and AI helping me apply faster while also helping me lie.
+      </p>
+
+      <h2>What the automation actually does</h2>
+      <p>Three scheduled skills, each with one narrow job.</p>
+      <ul>
+        <li>
+          <strong>job-application-tailor</strong> reads a pasted job description, cross-references
+          it against the Background Bank, and produces an ATS-safe tailored resume, a matching
+          cover letter, and a spoken "tell me about yourself" script. Where a requirement isn't
+          supported by my real background, it flags the gap instead of inventing something to fill
+          it.
+        </li>
+        <li>
+          <strong>meeting-investigator</strong> runs before scheduled calls: company and product
+          research, an honest green-flag and red-flag read, and short professional profiles of who
+          I am meeting, scoped strictly to public professional sources.
+        </li>
+        <li>
+          <strong>linkedin-alert-parser</strong> processes LinkedIn's own job-alert emails and
+          dedupes against what is already tracked.
+        </li>
+      </ul>
+
+      <h2>Two bugs worth describing</h2>
+      <p>
+        The first version of the alert parser deduped on the job board's tracking ID. That turned
+        out to be unreliable, because the same underlying posting can be issued several different
+        IDs across reposts, and I nearly applied twice to one role. The fix was to dedupe on the
+        semantic content instead, company plus role, fuzzy-matched, and treat the ID as a
+        secondary signal rather than the primary one. I also added a check for listings coming
+        through a staffing agency or job board reposting someone else's opening under its own
+        name.
+      </p>
+      <p>
+        The second showed up in the weekday morning digest, which runs on a schedule rather than a
+        trigger. It diffs the tracker against its own prior state instead of dumping current data,
+        and cross-checks it against my real calendar. That cross-check is where the value turned
+        out to be. It once caught a meeting-prep note saying one time while the real calendar
+        invite, updated later, said another, and the new time landed exactly on top of a separate
+        confirmed interview. Neither the tracker nor the previous digest had noticed. Making that
+        reliable meant two changes: trust the calendar event's actual timestamp over any note
+        written before a reschedule, and diff against the digest's own last-updated date instead
+        of a hardcoded day count, so a Monday run rolls up the whole weekend instead of assuming
+        nothing happened since Friday.
+      </p>
+
+      <h2>Notion API notes, for anyone building something similar</h2>
+      <ul>
+        <li>
+          Formula DDL needs the expression wrapped as a single-quoted string literal. Bare syntax
+          throws a cryptic "unexpected character" error that looks like an operator problem and
+          isn't.
+        </li>
+        <li>
+          Emoji embedded directly in a formula's string output can silently corrupt on write.
+          Plain text labels coloured through Notion's native select and status types are more
+          reliable as a status indicator.
+        </li>
+        <li>
+          A SQL aggregate query can report a genuinely empty field as 100% filled if a
+          case-insensitively similar field name exists elsewhere in the schema. Verify with a
+          direct record fetch before trusting an aggregate.
+        </li>
+      </ul>
+
+      <h2>Giving it away</h2>
+      <p>
+        Once it was actually working I stripped out everything personal and packaged the whole
+        thing as a deployable kit. The bootstrap prompt walks a fresh Claude and Notion setup
+        through interviewing someone about their own background, building their own verified
+        Background Bank, standing up the same four-database architecture, and installing
+        genericized versions of the three skills.
+      </p>
+      <p>
+        Three extra pieces went in along the way. A checklist for catching AI-sounding writing
+        before it reaches a resume, which opens on em-dash overuse and which I have since had to
+        apply to this very site. A short guide on where the default tech-style resume format is
+        the wrong call, because academia, government, legal, and creative fields all have real and
+        different conventions. And the digest automation itself, with one deliberate change: my
+        version closes each email with a quote from a personal pool of sources, and the
+        generalized version does not carry that pool forward. It asks the next person what they
+        would want, or whether they want a quote at all.
+      </p>
+      <p>
+        Not inventing facts about someone's career and not quietly imposing your own taste on
+        someone else's tool turned out to be the same discipline applied twice.
+      </p>
+
+      <h2>Where it stands</h2>
+      <p>
+        The tracker holds over 160 opportunities across LinkedIn alerts, referrals, and direct
+        recruiter outreach, with tailoring and pre-meeting research running against real scheduled
+        interviews. So far it has caught a same-role duplicate before it became a second
+        application, disambiguated two different people both named Tom in my own notes, flagged a
+        factual overclaim in my own resume draft before it reached a recruiter, and found a real
+        double-booking between two confirmed interview rounds a few days before either would have
+        happened.
+      </p>
+      <p>
+        None of that replaces interviewing well or following up on relationships. The
+        highest-signal outcomes in this search have consistently come from direct networking
+        conversations, not from volume. What the system does is clear the busywork around that, so
+        there is more time for the part that actually moves things forward.
+      </p>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <span>© <span id="year">2026</span> Zachary Pressley</span>
+    <a href="../index.html#work">← All work</a>
+  </div>
+</footer>
+
+<script src="../assets/js/main.js"></script>
+</body>
+</html>
