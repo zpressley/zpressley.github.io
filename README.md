@@ -75,6 +75,12 @@ PDFs go in `assets/files/` and link the same way.
 
 ## Link previews
 
-`assets/img/og-image.png` is what unfurls when the site is shared. It's 1200×630 and
-referenced by absolute URL in the `og:image` tag in `index.html`, because relative paths
-don't work for social crawlers. Regenerate it if the headline changes.
+Every page has its own social card, so a shared link shows a real picture instead of an
+empty box. `assets/img/og-image.png` is the home page; `assets/img/og/<slug>.png` is one
+per project and demo, all 1200×630.
+
+The tags live in each page's `<head>` and must use absolute URLs, because crawlers do not
+resolve relative paths. `projects/_template.html` carries a commented block to copy.
+
+LinkedIn caches previews hard. After changing a card, re-scrape the URL through
+LinkedIn's Post Inspector or the old image keeps showing.
