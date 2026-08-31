@@ -134,12 +134,6 @@
         threshold the user sets.
       </p>
       <p>
-        The fallback doesn't score against every contact in the export, either. An inverted index
-        of name words narrows the field to a small candidate set first, and fuzzy matching runs
-        only on that. That's what keeps it usable against a full contact export instead of a
-        sample.
-      </p>
-      <p>
         Every result carries the method that produced it: <code>Email + Full Name (98%)</code>,
         <code>Name Only - Flexible (87%)</code>. A reviewer can see why something matched, not
         only how well.

@@ -147,25 +147,6 @@
         </li>
       </ul>
 
-      <h2>Notion API notes, for anyone building something similar</h2>
-      <ul>
-        <li>
-          Formula DDL needs the expression wrapped as a single-quoted string literal. Bare syntax
-          throws a cryptic "unexpected character" error that looks like an operator problem and
-          isn't.
-        </li>
-        <li>
-          Emoji embedded directly in a formula's string output can silently corrupt on write.
-          Plain text labels coloured through Notion's native select and status types are more
-          reliable as a status indicator.
-        </li>
-        <li>
-          A SQL aggregate query can report a genuinely empty field as 100% filled if a
-          case-insensitively similar field name exists elsewhere in the schema. Verify with a
-          direct record fetch before trusting an aggregate.
-        </li>
-      </ul>
-
       <h2>Giving it away</h2>
       <p>
         Once it was actually working I stripped out everything personal and packaged the whole
@@ -175,9 +156,10 @@
         genericized versions of the three skills.
       </p>
       <p>
-        Three extra pieces went in along the way. A checklist for catching AI-sounding writing
-        before it reaches a resume, which opens on em-dash overuse and which I have since had to
-        apply to this very site. A short guide on where the default tech-style resume format is
+        Three extra pieces went in along the way, plus a running list of the Notion API problems
+        I hit and how I got around them. A checklist for catching AI-sounding writing before it
+        reaches a resume, which opens on em-dash overuse and which I have since had to apply to
+        this very site. A short guide on where the default tech-style resume format is
         the wrong call, because academia, government, legal, and creative fields all have real and
         different conventions. And the digest automation itself, with one deliberate change: my
         version closes each email with a quote from a personal pool of sources, and the
