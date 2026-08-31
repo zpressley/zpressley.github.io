@@ -1,0 +1,28 @@
+{
+  "type": "object",
+  "properties": {
+    "employeeCount": {
+      "type": ["integer", "string", "null"],
+      "description": "Standalone employee count for the entity only. Integer for an exact value, string for a reported range such as '201-500', or null when no confident standalone count is available or no entity anchor was confirmed."
+    },
+    "sources": {
+      "type": "array",
+      "items": { "type": "string", "description": "URL of a public source used to verify the employee count." },
+      "description": "URLs used to research the standalone employee count, including any secondary reference retained after a tie-break."
+    },
+    "asOfDate": {
+      "type": ["string", "null"],
+      "description": "ISO date (YYYY-MM-DD) the count was reported. Normalize a month-only date to the first of that month. Null when the source gives no date."
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["high", "medium", "low"],
+      "description": "high: official or entity-owned source, anchor confirmed, no conflict, dated. medium: anchor confirmed but a tie-break was applied or no date is available. low: anchor weak or unconfirmed, aggregator-only source, or employeeCount is null."
+    },
+    "parentConflationNote": {
+      "type": ["string", "null"],
+      "description": "Any source that conflated the entity with a parent, any combined-group figure excluded and why, and any tie-break applied. Null only when none occurred."
+    }
+  },
+  "required": ["employeeCount", "sources", "asOfDate", "confidence", "parentConflationNote"]
+}

@@ -53,16 +53,21 @@
       <div class="fact"><dt>Role</dt><dd>Design &amp; build · Revenue Operations</dd></div>
       <div class="fact"><dt>Timeline</dt><dd>2026 · at Anaconda</dd></div>
       <div class="fact"><dt>Stack</dt><dd>Clay, Salesforce (SOQL, Apex), HG Insights, ZoomInfo, PDL</dd></div>
-      <div class="fact"><dt>Status</dt><dd>Built, never launched</dd></div>
+      <div class="fact"><dt>Status</dt><dd>Never launched, rebuilt and running</dd></div>
     </dl>
+
+    <div class="doclinks">
+      <a class="btn btn--primary" href="../demo/employee-count-variance.html">Run the variance logic &rarr;</a>
+    </div>
 
     <div class="callout">
       <h4>Read this first</h4>
       <p>
-        I designed and built this in Clay, and it was scheduled to go live the week I was laid
-        off. It never ran in production. Everything below is the intended operating model and the
-        reasoning behind it. There are no measured results, because there was never a chance to
-        measure any.
+        I designed and built this in Clay, and it was scheduled to go live the week I was laid off.
+        It never ran in production there, so there are no business results to report. I have since
+        rebuilt the employee-count half of it in a personal workspace against 11 public enterprise
+        accounts, which is where the numbers further down come from. Those are real runs. They are
+        not evidence that the system worked at a company, because it never got the chance.
       </p>
       <p>
         I'd rather show the thinking with that caveat attached than quietly imply an outcome that
@@ -177,6 +182,99 @@
           table, which is where hierarchy gets resolved once instead of per segment.
         </figcaption>
       </figure>
+
+      <h2>Three sources, one number, no agreement</h2>
+      <p>
+        Employee count came from three places: the CRM field, Clay's native enrichment, and HG
+        Insights. On a batch of 11 enterprise accounts they disagreed by an average of 65%, measured
+        as the spread between the highest and lowest figure. That is not a rounding problem. That is
+        three systems describing different companies.
+      </p>
+      <p>
+        The reconciliation is deliberately simple. Measure the spread. If it is above 20%, drop the
+        single source furthest from the median and measure again. Across the same 11 accounts the
+        average spread falls from 65% to 20%. Two thirds of the apparent disagreement is one bad
+        source per row rather than genuine uncertainty about the company.
+      </p>
+      <p>
+        The failure it is built for looks like Clayton Homes. HG Insights returned 387,800 for it,
+        which is Berkshire Hathaway's headcount, not Clayton's. That is the parent-conflation problem
+        the whole pipeline exists to catch, and it showed up twice in 11 rows. Acme Brick, also a
+        Berkshire subsidiary, got the identical 387,800.
+      </p>
+      <p>
+        <a href="../demo/employee-count-variance.html">The logic runs here</a> on those 11 accounts,
+        with the thresholds exposed as sliders.
+      </p>
+
+      <h2>Gating the expensive step</h2>
+      <p>
+        Rows still in disagreement after the exclusion go to an AI research step that reads the
+        company's own filings and profiles and returns a standalone headcount with the sources it
+        used. It costs 3 credits per row against roughly 1 for native enrichment and 4 for HG.
+      </p>
+      <p>
+        On the first pass I ran it on all 11 rows for 33 credits. Only one row needed it. PepsiCo,
+        Microsoft, Sony and the rest had two surviving sources already agreeing within a few percent,
+        and spending research credits to confirm an agreement is just spending. Gating the step on
+        rows that are still in conflict after exclusion takes the same batch to 3 credits.
+      </p>
+      <p>
+        That is the part I would put in front of anyone paying for enrichment. The savings are not
+        from enriching less. They are from enriching only where two independent sources have already
+        failed to settle the question.
+      </p>
+
+      <h2>Where the heuristic was wrong</h2>
+      <p>
+        I built the exclusion logic expecting it to produce the answer. Running it against 11 rows
+        with an independent AI check on every one showed that it doesn't. It produces a shortlist.
+      </p>
+      <p>
+        Unilever is the clean inversion. The heuristic flagged HG Insights as the outlier and dropped
+        it. The AI then read Unilever's 2025 annual report and returned 96,092, which is HG's figure
+        exactly. The two sources that survived were both inflated. The mechanical rule discarded the
+        correct answer and kept the two wrong ones.
+      </p>
+      <p>
+        Amazon drifts the same direction more quietly. Clayton Homes fails a third way: even after
+        correctly dropping the parent count, both surviving sources were still too low, and the right
+        answer sat above both of them.
+      </p>
+      <p>
+        So the outlier flag is a triage signal and not a verdict. It is good at telling you which
+        rows to investigate and has no idea which source is right. Treating it as an answer is the
+        mistake I would have shipped.
+      </p>
+      <p>
+        The fix is a third check. Compare the AI result against the surviving cluster, and flag
+        anything that disagrees by more than 30% for a human. On this batch that surfaces Clayton
+        Homes, Unilever, Amazon and Alphabet, which is every row that actually warranted a look.
+      </p>
+
+      <h2>What the AI prompt got wrong</h2>
+      <p>
+        I evaluated the research prompt on its own rather than trusting it because it returned
+        plausible numbers. It completed 11 of 11 rows with no silent failures, and it caught the
+        cases it was built for: it correctly rejected Alphabet's consolidated SEC figure of 198,933,
+        Disney's 231,000 "company and its subsidiaries" number, and Clayton's 22,000+ enterprise
+        figure, in each case explaining why in its own output.
+      </p>
+      <p>
+        It has two defects worth naming. The first is that it has no tie-breaking rule for when
+        LinkedIn's displayed count conflicts with an official filing. It preferred the filing for
+        Meta and Unilever, then preferred LinkedIn for Amazon and Microsoft, with a different
+        justification each time. Nothing in the prompt governs that choice, so the same row can
+        return different numbers on different runs. For a system meant to be auditable, that is the
+        serious one.
+      </p>
+      <p>
+        The second is Alphabet. It ran without a confirmed domain and returned 2,164 for a company
+        with roughly 180,000 employees, which would classify one of the largest companies in the
+        world as a sub-1K account. Every other result was directionally plausible. This one is a
+        genuine wrong-entity match, and it happened because the prompt will answer from a company
+        name alone. It should refuse when the domain and LinkedIn URL are both unconfirmed.
+      </p>
 
       <h2>Validation, not just enrichment</h2>
       <p>

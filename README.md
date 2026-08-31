@@ -34,7 +34,8 @@ decks/
   signal-not-noise.html self-contained slide deck, served as its own page
 demo/
   account-matcher.html  runnable in-browser sample of the matcher
-  pricing-engine.html   runnable cost → price model with the tier chart
+  pricing-engine.html   runnable cost to price model with the tier chart
+  employee-count-variance.html  runnable source-reconciliation and gating logic
 src/
   sfdc-account-matcher/ project source, linked from the case study
   job-search-ops-kit/   the deployable kit, linked from the case study

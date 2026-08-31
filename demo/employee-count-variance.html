@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Employee count variance: try it | Zachary Pressley</title>
+<meta name="description" content="Three enrichment sources disagree about how many people work at a company. This runs the real reconciliation logic over 11 enterprise accounts: drop the outlier, measure what is left, and gate the paid AI step on the rows that actually need it.">
+<meta name="color-scheme" content="dark light">
+<link rel="canonical" href="https://zpressley.github.io/demo/employee-count-variance.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Zachary Pressley">
+<meta property="og:url" content="https://zpressley.github.io/demo/employee-count-variance.html">
+<meta property="og:title" content="Employee Count Variance: try it">
+<meta property="og:description" content="Three sources disagree about headcount. Drop the outlier, measure what is left, and gate the paid AI step on the rows that actually need it.">
+<meta property="og:image" content="https://zpressley.github.io/assets/img/og/demo-employee-count-variance.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Employee Count Variance: try it">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Employee Count Variance: try it">
+<meta name="twitter:description" content="Three sources disagree about headcount. Gate the paid AI step on the rows that actually need it.">
+<meta name="twitter:image" content="https://zpressley.github.io/assets/img/og/demo-employee-count-variance.png">
+
+<link rel="stylesheet" href="../assets/css/style.css">
+<style>
+  .controls { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin:1.8rem 0 1.4rem; }
+  @media (max-width:800px){ .controls{grid-template-columns:1fr} }
+  .pane { border:1px solid var(--line); border-radius:var(--radius); background:var(--ink-2); padding:1.1rem 1.2rem; }
+  .pane h3 { font-family:var(--mono); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin:0 0 .9rem; }
+  .ctrl { margin-bottom:1rem }
+  .ctrl:last-child { margin-bottom:0 }
+  .ctrl label { display:flex; justify-content:space-between; align-items:baseline; gap:1rem; font-size:.88rem; color:var(--text-dim); margin-bottom:.35rem }
+  .ctrl label .val { font-family:var(--mono); color:var(--text) }
+  input[type=range]{ width:100%; accent-color:var(--accent) }
+  .toggle { display:flex; align-items:center; gap:.6rem; font-size:.9rem; color:var(--text-dim) }
+  .toggle input { accent-color:var(--accent); width:16px; height:16px }
+
+  .stats { display:flex; flex-wrap:wrap; gap:1.8rem; margin:.4rem 0 0 }
+  .stat .k { font-family:var(--mono); font-size:.64rem; letter-spacing:.14em; text-transform:uppercase; color:var(--text-dim); margin-bottom:.25rem }
+  .stat .v { font-size:1.45rem; font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums }
+  .stat .v.accent { color:var(--accent) }
+  .stat .v.warn { color:#e79a9a }
+
+  table.vt { width:100%; border-collapse:collapse; font-size:.86rem; min-width:760px }
+  table.vt th { text-align:right; font-family:var(--mono); font-size:.62rem; letter-spacing:.1em; text-transform:uppercase;
+                color:var(--accent); padding:.6rem .7rem; background:var(--ink-3); white-space:nowrap; font-weight:600 }
+  table.vt th:first-child, table.vt td:first-child { text-align:left }
+  table.vt td { text-align:right; padding:.5rem .7rem; border-top:1px solid var(--line); color:var(--text-dim);
+                font-variant-numeric:tabular-nums; white-space:nowrap }
+  table.vt td.name { color:var(--text); font-weight:600 }
+  td.dropped { text-decoration:line-through; opacity:.45 }
+  tr.fires { background:rgba(23,166,160,.07) }
+  .pill { font-family:var(--mono); font-size:.62rem; letter-spacing:.08em; text-transform:uppercase;
+          padding:.14rem .42rem; border-radius:4px; border:1px solid var(--line) }
+  .pill--fire { color:var(--accent); border-color:#2c6b6b; background:rgba(23,166,160,.14) }
+  .pill--skip { color:var(--text-dim) }
+  .boundary { color:#e79a9a }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a class="nav__mark" href="../index.html">Zach Pressley<span>.</span></a>
+    <div class="nav__links">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#about">About</a>
+      <a href="../assets/files/zach-pressley-resume.pdf" target="_blank" rel="noopener">Resume</a>
+      <a href="../index.html#contact">Contact</a>
+      <button class="theme-toggle" type="button" aria-label="Switch theme">☀</button>
+    </div>
+  </div>
+</nav>
+
+<main class="case">
+  <div class="wrap">
+    <a class="back" href="../projects/clay-enrichment-waterfall.html">← Back to the case study</a>
+
+    <h1>Employee count variance: try it</h1>
+    <p class="case__lede">
+      Three enrichment sources give three different headcounts for the same company. These are 11
+      real enterprise accounts and the actual numbers each source returned. Move the thresholds and
+      watch which rows get resolved automatically, which ones escalate to a paid AI research step,
+      and what that costs.
+    </p>
+
+    <div class="callout">
+      <h4>Why this matters more than it sounds</h4>
+      <p>
+        Employee count drives segment. Segment drives which rep owns the account. A source that is
+        wrong by an order of magnitude does not produce a slightly wrong report, it hands the
+        account to the wrong team. The row to watch is <strong>Clayton Homes</strong>, where one
+        source returns its parent company's headcount instead of its own.
+      </p>
+    </div>
+
+    <div class="controls">
+      <div class="pane">
+        <h3>Thresholds</h3>
+        <div class="ctrl">
+          <label for="excl">Drop the outlier above <span class="val" id="excl-v"></span></label>
+          <input type="range" id="excl" min="0" max="100" step="1" value="20">
+        </div>
+        <div class="ctrl">
+          <label for="esc">Escalate to AI above <span class="val" id="esc-v"></span></label>
+          <input type="range" id="esc" min="0" max="100" step="1" value="50">
+        </div>
+        <div class="ctrl">
+          <label for="div">Send for human review above <span class="val" id="div-v"></span></label>
+          <input type="range" id="div" min="5" max="120" step="5" value="30">
+        </div>
+      </div>
+      <div class="pane">
+        <h3>Spend</h3>
+        <div class="ctrl">
+          <label class="toggle">
+            <input type="checkbox" id="gate" checked>
+            Gate the AI step on escalated rows only
+          </label>
+          <p style="font-size:.82rem;color:var(--text-dim);margin:.6rem 0 0">
+            Off means running the research step on all 11 rows, including the ones where the two
+            surviving sources already agree.
+          </p>
+        </div>
+        <div class="stats" style="margin-top:1.2rem">
+          <div class="stat"><div class="k">AI runs</div><div class="v accent" id="s-runs">0</div></div>
+          <div class="stat"><div class="k">Credits</div><div class="v" id="s-credits">0</div></div>
+          <div class="stat"><div class="k">Saved</div><div class="v" id="s-saved">0</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats" style="margin-bottom:1.4rem">
+      <div class="stat"><div class="k">Mean variance, raw</div><div class="v warn" id="s-raw">0%</div></div>
+      <div class="stat"><div class="k">After dropping outliers</div><div class="v accent" id="s-post">0%</div></div>
+      <div class="stat"><div class="k">Rows needing exclusion</div><div class="v" id="s-excl">0</div></div>
+      <div class="stat"><div class="k">Flagged for a human</div><div class="v warn" id="s-review">0</div></div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="vt">
+        <thead>
+          <tr>
+            <th>Company</th><th>CRM</th><th>Clay</th><th>HG Insights</th>
+            <th>Raw</th><th>After</th><th>AI result</th><th>Gap</th><th>Step</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="embed-note" id="note"></p>
+
+    <div class="prose">
+      <h2>What the logic does</h2>
+      <p>
+        For each account it takes the three counts, measures the spread as
+        <code>(max − min) / max</code>, and if that spread is above the first threshold it drops
+        the single source furthest from the median and measures again. The second number is what
+        you can actually trust.
+      </p>
+      <p>
+        Across these 11 accounts the raw spread averages 65%. After dropping one source per row it
+        averages 20%. That gap is the whole argument for doing this: two thirds of the apparent
+        disagreement is one bad source per row, not genuine uncertainty.
+      </p>
+      <p>
+        The second threshold decides what happens to rows still in disagreement after the drop. Those
+        go to an AI research step that reads the company's own filings and profiles and returns a
+        standalone headcount with its sources. It costs 3 credits a row. Running it everywhere costs
+        33 credits on this batch. Running it only where the surviving sources still disagree costs 3,
+        and resolves the row that actually mattered.
+      </p>
+      <p>
+        That gating is the cheap part. The expensive lesson is in the next section.
+      </p>
+
+      <h2>The thing I got wrong</h2>
+      <p>
+        I built this expecting the exclusion step to produce the answer. It doesn't. It produces a
+        shortlist.
+      </p>
+      <p>
+        Turn the gate off so the research step runs on every row, and watch Unilever. The heuristic
+        throws out HG Insights as the outlier. The AI then goes and reads Unilever's 2025 annual
+        report and returns 96,092, which is HG's number exactly. The two sources that survived the
+        exclusion were both inflated. The mechanical logic threw away the correct answer and kept
+        the two wrong ones.
+      </p>
+      <p>
+        Amazon does the same thing more quietly, landing near the excluded figure rather than the
+        surviving pair. Clayton Homes does a third version: after correctly dropping the parent
+        company count, both survivors were still too low.
+      </p>
+      <p>
+        So the outlier flag is a triage signal, not a verdict. It is good at telling you which rows
+        to investigate and has no idea which source is right. That is what the third slider is for.
+        It compares the AI result against the surviving cluster and flags anything that disagrees by
+        more than the gap you set. At 30% it surfaces Clayton Homes, Unilever, Amazon, and Alphabet,
+        which is every row on this batch a human should actually look at.
+      </p>
+
+      <h2>Watch Clayton Homes</h2>
+      <p>
+        It is the row the pipeline exists for. Every source disagrees, and one returns 387,800,
+        which is Berkshire Hathaway's headcount rather than Clayton's. The AI comes back with 8,652
+        and shows its work: it found a 22,000+ figure on the careers site and rejected it as the
+        broader Clayton enterprise rather than Clayton Homes itself.
+      </p>
+      <p>
+        Pull the escalation threshold up past 85 and watch it stop firing. That is what a
+        too-conservative gate costs you.
+      </p>
+
+      <h2>Alphabet is a real failure, not a demo prop</h2>
+      <p>
+        The AI returns 2,164 for Alphabet Inc., a company with roughly 180,000 employees. It ran
+        without a confirmed domain, so the sources may each have resolved a different company of the
+        same name. It is left in because a batch report that hides its one bad row is not a batch
+        report. The fix is to refuse to return a count when domain and LinkedIn URL are both
+        unconfirmed, rather than answering from the name alone.
+      </p>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <span>© <span id="year">2026</span> Zachary Pressley</span>
+    <a href="../projects/clay-enrichment-waterfall.html">← Case study</a>
+  </div>
+</footer>
+
+<script src="../assets/js/main.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  // Real values from an 11-row ENT 10K+ enrichment run.
+  // SFDC column is a placeholder field, not live CRM data.
+  var ROWS = [
+    { n:"Clayton Homes",  sfdc:800,     clay:5451,   hg:387800,  ai:8652,
+      note:"HG returned Berkshire's parent count. Even after dropping it, both surviving sources were too low." },
+    { n:"Unilever",       sfdc:128000,  clay:157086, hg:96092,   ai:96092,
+      note:"The heuristic threw out HG. The AI came back with HG's exact number. Both survivors were inflated." },
+    { n:"Amazon",         sfdc:1540000, clay:764421, hg:1576000, ai:786228,
+      note:"AI lands near the excluded Clay figure, not the SFDC and HG cluster." },
+    { n:"Alphabet Inc.",  sfdc:182000,  clay:2115,   hg:190820,  ai:2164,
+      note:"No domain anchor at run time, so the sources may have resolved different companies. Not trustworthy either way." },
+    { n:"ACME Brick",     sfdc:2000,    clay:1371,   hg:387800,  ai:1373,
+      note:"HG returned the Berkshire parent count again. AI confirms Clay almost exactly." },
+    { n:"LVMH",           sfdc:890,     clay:152474, hg:211552,  ai:211000,
+      note:"Placeholder CRM value correctly flagged. AI confirms HG." },
+    { n:"Sony Group",     sfdc:113000,  clay:24689,  hg:94900,   ai:112300,
+      note:"Clay badly under-counted, likely a wrong entity. AI aligns with the survivors." },
+    { n:"Meta Platforms", sfdc:67000,   clay:163757, hg:78865,   ai:75472,
+      note:"Clay over-counted. AI lands between the survivors. Correct exclusion." },
+    { n:"PepsiCo",        sfdc:318000,  clay:154498, hg:306000,  ai:306000,
+      note:"Clay under-counted. The surviving cluster is confirmed." },
+    { n:"Microsoft",      sfdc:182000,  clay:233106, hg:228000,  ai:233211,
+      note:"CRM value stale. Clay and HG cluster confirmed." },
+    { n:"Walt Disney",    sfdc:225000,  clay:194967, hg:231000,  ai:193793,
+      note:"No exclusion needed. All three sources reasonably aligned." }
+  ];
+  var CREDITS_PER_AI_RUN = 3;
+  var SEGMENT_LINE = 10000;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var fmt = function (n) { return n.toLocaleString("en-US"); };
+
+  function spread(vals) {
+    var mx = Math.max.apply(null, vals), mn = Math.min.apply(null, vals);
+    return mx === 0 ? 0 : (mx - mn) / mx * 100;
+  }
+
+  function analyse(r, exclAt) {
+    var vals = [r.sfdc, r.clay, r.hg], labels = ["sfdc", "clay", "hg"];
+    var raw = spread(vals);
+    var sorted = vals.slice().sort(function (a, b) { return a - b; });
+    var median = sorted[1];
+    var dist = vals.map(function (v) { return Math.abs(v - median); });
+    var worst = labels[dist.indexOf(Math.max.apply(null, dist))];
+    var dropped = raw > exclAt ? worst : null;
+    var kept = vals.filter(function (v, i) { return labels[i] !== dropped; });
+    return { raw: raw, dropped: dropped, post: dropped ? spread(kept) : raw, kept: kept };
+  }
+
+  function render() {
+    var exclAt = +$("excl").value, escAt = +$("esc").value, divAt = +$("div").value;
+    var gated = $("gate").checked;
+    $("excl-v").textContent = exclAt + "% spread";
+    $("esc-v").textContent  = escAt + "% spread";
+    $("div-v").textContent  = divAt + "% gap";
+
+    var rawSum = 0, postSum = 0, excluded = 0, runs = 0, review = 0, html = "";
+
+    ROWS.forEach(function (r) {
+      var a = analyse(r, exclAt);
+      rawSum += a.raw; postSum += a.post;
+      if (a.dropped) excluded++;
+      var fires = gated ? a.post > escAt : true;
+      if (fires) runs++;
+
+      var keptMean = a.kept.reduce(function (x, y) { return x + y; }, 0) / a.kept.length;
+      var gap = Math.abs(r.ai - keptMean) / r.ai * 100;
+      var needsReview = fires && gap > divAt;
+      if (needsReview) review++;
+
+      var straddles = Math.min.apply(null, a.kept) < SEGMENT_LINE &&
+                      Math.max.apply(null, a.kept) >= SEGMENT_LINE;
+
+      function cell(key, v) {
+        return '<td class="' + (a.dropped === key ? "dropped" : "") + '">' + fmt(v) + "</td>";
+      }
+      html += '<tr class="' + (needsReview ? "fires" : "") + '" title="' + (r.note || "") + '">' +
+        '<td class="name">' + r.n +
+          (straddles ? ' <span class="boundary" title="surviving sources fall either side of the 10,000 segment line">&#9670;</span>' : "") +
+        "</td>" +
+        cell("sfdc", r.sfdc) + cell("clay", r.clay) + cell("hg", r.hg) +
+        "<td>" + a.raw.toFixed(0) + "%</td>" +
+        "<td>" + a.post.toFixed(0) + "%</td>" +
+        "<td>" + (fires ? fmt(r.ai) : "&mdash;") + "</td>" +
+        '<td class="' + (needsReview ? "boundary" : "") + '">' + (fires ? gap.toFixed(0) + "%" : "&mdash;") + "</td>" +
+        '<td><span class="pill ' + (needsReview ? "pill--fire" : "pill--skip") + '">' +
+          (!fires ? "skip" : needsReview ? "review" : "auto") + "</span></td></tr>";
+    });
+
+    $("rows").innerHTML = html;
+    $("s-raw").textContent  = (rawSum / ROWS.length).toFixed(0) + "%";
+    $("s-post").textContent = (postSum / ROWS.length).toFixed(0) + "%";
+    $("s-excl").textContent = excluded + " of " + ROWS.length;
+    $("s-runs").textContent = runs + " of " + ROWS.length;
+    $("s-credits").textContent = runs * CREDITS_PER_AI_RUN;
+    $("s-saved").textContent = (ROWS.length - runs) * CREDITS_PER_AI_RUN;
+    $("s-review").textContent = review;
+
+    $("note").textContent = "Hover a row for what happened in it. \u25C6 marks rows where the surviving sources fall "
+      + "either side of the " + fmt(SEGMENT_LINE) + "-employee segment line, which is where a wrong number changes "
+      + "account ownership.";
+  }
+
+  ["excl", "esc", "div"].forEach(function (id) { $(id).addEventListener("input", render); });
+  $("gate").addEventListener("change", render);
+  render();
+})();
+</script>
+</body>
+</html>
