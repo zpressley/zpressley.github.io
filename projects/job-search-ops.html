@@ -142,32 +142,10 @@
         </li>
         <li>
           <strong>linkedin-alert-parser</strong> processes LinkedIn's own job-alert emails and
-          dedupes against what is already tracked.
+          dedupes against what is already tracked, including a check for staffing agencies and
+          job boards reposting someone else's opening under their own name.
         </li>
       </ul>
-
-      <h2>Two bugs worth describing</h2>
-      <p>
-        The first version of the alert parser deduped on the job board's tracking ID. That turned
-        out to be unreliable, because the same underlying posting can be issued several different
-        IDs across reposts, and I nearly applied twice to one role. The fix was to dedupe on the
-        semantic content instead, company plus role, fuzzy-matched, and treat the ID as a
-        secondary signal rather than the primary one. I also added a check for listings coming
-        through a staffing agency or job board reposting someone else's opening under its own
-        name.
-      </p>
-      <p>
-        The second showed up in the weekday morning digest, which runs on a schedule rather than a
-        trigger. It diffs the tracker against its own prior state instead of dumping current data,
-        and cross-checks it against my real calendar. That cross-check is where the value turned
-        out to be. It once caught a meeting-prep note saying one time while the real calendar
-        invite, updated later, said another, and the new time landed exactly on top of a separate
-        confirmed interview. Neither the tracker nor the previous digest had noticed. Making that
-        reliable meant two changes: trust the calendar event's actual timestamp over any note
-        written before a reschedule, and diff against the digest's own last-updated date instead
-        of a hardcoded day count, so a Monday run rolls up the whole weekend instead of assuming
-        nothing happened since Friday.
-      </p>
 
       <h2>Notion API notes, for anyone building something similar</h2>
       <ul>
